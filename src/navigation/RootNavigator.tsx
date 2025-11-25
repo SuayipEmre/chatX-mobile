@@ -5,7 +5,11 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { AuthNavigatorStackParamList, MainNavigatorStackParamList } from './types'
 import AuthenticationStack from './AuthenticationStack'
-
+import { useUserSession } from '../store/feature/user/hooks'
+import { getUserSessionFromStorage } from '../utils/storage'
+import { setUserSession } from '../store/feature/user/actions'
+import MainNavigator from './MainNavigator'
+import AntDesign from '@expo/vector-icons/AntDesign';
 type NativeStackNavigatorParamList = {
     AuthenticationNavigator: NavigatorScreenParams<AuthNavigatorStackParamList>;
 }
@@ -21,11 +25,15 @@ const Stack = createNativeStackNavigator<NativeStackNavigatorParamList>()
 
 
 const RootNavigator = () => {
-    const user = ''
+    const user = useUserSession()
 
     useEffect(() => {
-
-    }, [user])
+        const getUser = async () => {
+            const user = await getUserSessionFromStorage()
+            setUserSession(user ?? null)
+        }
+        getUser()
+    }, [])
 
     if (!user) return <NavigationContainer>
         <Stack.Navigator>
@@ -35,7 +43,27 @@ const RootNavigator = () => {
                 options={{ headerShown: false }} />
         </Stack.Navigator>
     </NavigationContainer>
-    return <Text>Main navigator</Text>
+    return <NavigationContainer>
+        <Tab.Navigator
+        screenOptions={{
+            tabBarStyle: {
+                backgroundColor: "black",
+              },
+              tabBarInactiveTintColor : '#ccc',
+              tabBarActiveTintColor : '#fff',
+              
+        }}
+        >
+            <Tab.Screen
+                name='MainNavigator'
+                component={MainNavigator}
+                options={{
+                    headerShown: false,
+                    tabBarIcon : ({color}) => <AntDesign name="wechat-work" size={24} color={color}/>
+                }}
+            />
+        </Tab.Navigator>
+    </NavigationContainer>
 }
 
 export default RootNavigator

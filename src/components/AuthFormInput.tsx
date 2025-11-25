@@ -17,6 +17,7 @@ const AuthFormInput: React.FC<Props> = ({ label, onChange, value, placeholder, s
                 onChangeText={onChange}
                 placeholder={placeholder}
                 placeholderTextColor="#6b7280"
+                autoCapitalize='none'
                 secureTextEntry={secureTextEntry}
                 className="
             bg-neutral-900 

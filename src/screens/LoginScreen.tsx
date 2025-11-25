@@ -5,13 +5,34 @@ import GradientButton from "../components/GradientButton";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { AuthNavigatorStackParamList } from "../navigation/types";
 import Logo from "../components/Logo";
+import { login } from "../service/auth.service";
+import { setUserSession } from "../store/feature/user/actions";
+import { setUserSessionToStorage } from "../utils/storage";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  
+
   const navigation = useNavigation<NavigationProp<AuthNavigatorStackParamList>>()
 
+
+  const handleLogin = async () => {
+    if (!email.includes('@') || password.length < 5) return console.log('cannot login')
+
+    try {
+      const loginData = await login(email, password)
+      console.log('login data : ', loginData);
+
+      if (loginData) {
+        setUserSession(loginData)
+        setUserSessionToStorage(loginData)
+      }
+
+    } catch (error) {
+      console.log('errorasd : ', error);
+
+    }
+  }
 
   return (
     <View className="flex-1 bg-black px-7 justify-center">
@@ -44,7 +65,7 @@ export default function LoginScreen() {
         </TouchableOpacity>
       </View>
 
-    <GradientButton onPress={() => console.log('button is active')} text="login" />
+      <GradientButton onPress={handleLogin} text="login" />
 
       <View className="flex-row items-center my-10">
         <View className="flex-1 h-[1px] bg-neutral-800" />
