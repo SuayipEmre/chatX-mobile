@@ -3,7 +3,7 @@ import { UserSession } from "../types/UserSessionType";
 
 const SESSION_KEY = "userSession";
 
-export const setUserSessionToStorage = async (session: UserSession) => {
+export const setUserSessionToStorage = async (session: UserSession ) => {
   await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
 };
 

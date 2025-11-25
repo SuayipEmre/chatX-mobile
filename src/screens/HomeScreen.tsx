@@ -27,13 +27,13 @@ const HomeScreen = () => {
             className="flex-row items-center px-4 py-3 border-b border-neutral-800"
           >
             {/* Avatar */}
-            <View className="w-12 h-12 rounded-full bg-neutral-700 items-center justify-center">
+            <View className="w-12 h-12 rounded-full bg-blue-500 items-center justify-center">
               <EvilIcons name="user" size={34} color="white" />
             </View>
 
             {/* Chat info */}
             <View className="flex-1 ml-3">
-              <Text className="text-white text-[17px] font-semibold">
+              <Text className="text-blue-500 text-[17px] font-semibold">
                 {user?.username}
               </Text>
 

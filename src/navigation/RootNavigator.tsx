@@ -3,19 +3,22 @@ import React, { useEffect } from 'react'
 import { NavigationContainer, NavigatorScreenParams } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { AuthNavigatorStackParamList, MainNavigatorStackParamList } from './types'
+import { AuthNavigatorStackParamList, MainNavigatorStackParamList, ProfileNavigatorStackParamList } from './types'
 import AuthenticationStack from './AuthenticationStack'
 import { useUserSession } from '../store/feature/user/hooks'
 import { getUserSessionFromStorage } from '../utils/storage'
 import { setUserSession } from '../store/feature/user/actions'
 import MainNavigator from './MainNavigator'
 import AntDesign from '@expo/vector-icons/AntDesign';
+import ProfileNavigator from './ProfileStack'
+import Feather from '@expo/vector-icons/Feather';
 type NativeStackNavigatorParamList = {
     AuthenticationNavigator: NavigatorScreenParams<AuthNavigatorStackParamList>;
 }
 
 type BottomNavigatorRootStackParamList = {
     MainNavigator: NavigatorScreenParams<MainNavigatorStackParamList>;
+    ProfileNavigator: NavigatorScreenParams<ProfileNavigatorStackParamList>;
 }
 
 
@@ -45,23 +48,33 @@ const RootNavigator = () => {
     </NavigationContainer>
     return <NavigationContainer>
         <Tab.Navigator
-        screenOptions={{
-            tabBarStyle: {
-                backgroundColor: "black",
-              },
-              tabBarInactiveTintColor : '#ccc',
-              tabBarActiveTintColor : '#fff',
-              
-        }}
+            screenOptions={{
+                tabBarStyle: {
+                    backgroundColor: "black",
+                },
+                tabBarInactiveTintColor: '#ccc',
+                tabBarActiveTintColor: '#fff',
+
+            }}
         >
             <Tab.Screen
                 name='MainNavigator'
                 component={MainNavigator}
                 options={{
                     headerShown: false,
-                    tabBarIcon : ({color}) => <AntDesign name="wechat-work" size={24} color={color}/>
+                    tabBarIcon: ({ color }) => <AntDesign
+                        name="wechat-work"
+                        size={24} color={color} />,
+                
+                    tabBarLabel:'Chats',
                 }}
             />
+
+            <Tab.Screen name='ProfileNavigator' component={ProfileNavigator} options={{
+                tabBarIcon: ({ color }) => <Feather name="user" size={24} color={color} />,
+                headerShown: false,
+                tabBarLabel : 'Profile'
+            }} />
         </Tab.Navigator>
     </NavigationContainer>
 }

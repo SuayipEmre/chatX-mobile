@@ -6,4 +6,10 @@ export type AuthNavigatorStackParamList = {
 
 export type MainNavigatorStackParamList = {
     HomeScreen : undefined,
+    ProfileScreen : undefined,
+    
+}
+
+export type ProfileNavigatorStackParamList = {
+    ProfileScreen : undefined
 }
