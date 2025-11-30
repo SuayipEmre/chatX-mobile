@@ -14,6 +14,7 @@ const MainNavigator = () => {
         headerStyle : {
           backgroundColor:'#000',
         },
+        headerShown:false,
         headerTintColor : '#fff'
       }} />
     </Stack.Navigator>

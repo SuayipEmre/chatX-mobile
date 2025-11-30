@@ -1,59 +1,113 @@
-import { Text, View, TouchableOpacity } from 'react-native'
+import { Text, View, TouchableOpacity, TextInput, ActivityIndicator, FlatList } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { fetchChats } from '../service/chat.service'
 import { IChat } from '../types/Chats'
 import EvilIcons from '@expo/vector-icons/EvilIcons'
-
+import { SafeAreaView } from 'react-native-safe-area-context'
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 const HomeScreen = () => {
 
   const [chats, setChats] = useState<IChat[]>([])
+  const [search, setSearch] = useState("")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const getChats = async () => {
-      const data = await fetchChats()
-      setChats(data)
-    }
-    getChats()
+    loadChats()
   }, [])
 
+  const loadChats = async () => {
+    try {
+      const data = await fetchChats()
+      setChats(data)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  console.log('chats : ' ,chats);
+  
+  const filtered = chats.filter(chat =>
+    chat.otherUser?.username?.toLowerCase().includes(search.toLowerCase())
+  )
+
   return (
-    <View className="flex-1 bg-black pt-10">
-      <View className='gap-5'>
-      {chats.map((item) => {
-        const user = item.otherUser
-        return (
-          <TouchableOpacity 
-            key={item._id}
-            className="flex-row items-center px-4 py-3 border-b border-neutral-800"
-          >
-            {/* Avatar */}
-            <View className="w-12 h-12 rounded-full bg-blue-500 items-center justify-center">
-              <EvilIcons name="user" size={34} color="white" />
-            </View>
+    <SafeAreaView className="flex-1 bg-black" edges={['top']}>
+      <View className="flex-1 px-4 pt-3">
 
-            {/* Chat info */}
-            <View className="flex-1 ml-3">
-              <Text className="text-blue-500 text-[17px] font-semibold">
-                {user?.username}
-              </Text>
+        {/* HEADER - Search */}
+        <View className="mb-4">
+          <Text className="text-white text-[28px] font-bold mb-3">
+            Sohbetler
+          </Text>
 
-              <Text className="text-neutral-400 text-[14px] mt-0.5">
-                Sohbete başlamak için tıkla
-              </Text>
-            </View>
+          <View className="bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3 flex-row items-center">
+            <EvilIcons name="search" size={26} color="gray" />
+            <TextInput
+              className="text-white ml-2 flex-1 text-[16px]"
+              placeholder="Kullanıcı ara veya sohbet başlat"
+              placeholderTextColor="#777"
+              value={search}
+              onChangeText={setSearch}
+            />
+          </View>
+        </View>
 
-            {/* Time */}
-            <Text className="text-neutral-500 text-xs">
-              {new Date(item.createdAt).toLocaleTimeString("tr-TR", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+        {/* LOADING */}
+        {loading && (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#3b82f6" />
+          </View>
+        )}
+
+        {/* EMPTY STATE */}
+        {!loading && filtered.length === 0 && (
+          <View className="flex-1 items-center justify-center">
+            <Text className="text-neutral-500 text-[16px]">
+              Henüz bir sohbet yok
             </Text>
-          </TouchableOpacity>
-        )
-      })}
+          </View>
+        )}
+
+        {/* CHAT LIST */}
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item._id}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => {
+            const user = item.otherUser
+
+            return (
+              <TouchableOpacity
+                className="flex-row items-center p-4 rounded-2xl mb-2 bg-neutral-900 border border-neutral-800 active:bg-neutral-800"
+              >
+                <View className="w-12 h-12 rounded-full bg-blue-600 items-center justify-center shadow-md shadow-blue-500/40">
+                  <EvilIcons name="user" size={30} color="white" />
+                </View>
+
+                <View className="flex-1 ml-3">
+                  <Text className="text-white text-[17px] font-semibold">
+                    {user?.username}
+                  </Text>
+
+                  <Text className="text-neutral-500 text-[14px]">
+                    Sohbete başlamak için tıkla
+                  </Text>
+                </View>
+
+                <Text className="text-neutral-600 text-xs">
+                  {new Date(item.createdAt).toLocaleTimeString("tr-TR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </Text>
+              </TouchableOpacity>
+            )
+          }}
+        />
+
+        <FontAwesome6 name="add" size={24} color="blue" className='absolute right-10 bottom-10 z-50 border border-gray-500 p-5 rounded-full' />
       </View>
-    </View>
+    </SafeAreaView>
   )
 }
 
