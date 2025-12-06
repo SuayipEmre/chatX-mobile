@@ -1,5 +1,5 @@
 import api from "./api";
-import { setAccessToken, setAccessTokenToStorage } from "../utils/storage";
+import {  setAccessTokenToStorage, setUserSessionToStorage } from "../utils/storage";
 import { setUserSession } from "../store/feature/user/actions";
 
 export const login = async (email: string, password: string) => {
@@ -8,7 +8,7 @@ export const login = async (email: string, password: string) => {
   const token = res.data.data.accessToken;
 
   if (token) {
-    await setAccessToken(token);
+    await setUserSessionToStorage(res.data);
   }
 
   return res.data.data;

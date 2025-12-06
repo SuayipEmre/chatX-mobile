@@ -1,5 +1,4 @@
 import api from "./api";
-import { setAccessToken } from "../utils/storage";
 
 export const fetchChats = async () => {
   try {

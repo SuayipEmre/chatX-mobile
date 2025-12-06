@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getAccessToken, setAccessToken, clearTokens } from "../utils/storage";
+import { getAccessToken, clearTokens, setAccessTokenToStorage } from "../utils/storage";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -63,7 +63,7 @@ api.interceptors.response.use(
         });
 
         const newAccessToken = refreshRes.data.data.accessToken;
-        await setAccessToken(newAccessToken);
+        await setAccessTokenToStorage(newAccessToken);
 
         api.defaults.headers.common[
           "Authorization"
