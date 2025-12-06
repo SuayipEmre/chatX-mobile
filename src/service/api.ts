@@ -58,7 +58,7 @@ api.interceptors.response.use(
 
       try {
         // Refresh isteği
-        const refreshRes = await axios.get(`${BASE_URL}/users/refresh`, {
+        const refreshRes = await axios.get(`${BASE_URL}/users/refresh-token`, {
           withCredentials: true,
         });
 

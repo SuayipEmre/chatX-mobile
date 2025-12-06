@@ -1,10 +1,11 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import Logo from '../components/Logo'
 import AuthFormInput from '../components/AuthFormInput'
 import GradientButton from '../components/GradientButton'
 import { NavigationProp, useNavigation } from '@react-navigation/native'
 import { AuthNavigatorStackParamList } from '../navigation/types'
+import { register } from '../service/auth.service'
 
 const RegisterScreen = () => {
   const [email, setEmail] = useState('')
@@ -14,6 +15,22 @@ const RegisterScreen = () => {
 
   const navigation = useNavigation<NavigationProp<AuthNavigatorStackParamList>>()
 
+  const handleRegister = async() => {
+    
+    if(password !== repassword) {
+      Alert.alert("ChatX","Passwords do not match")
+      return
+    }
+    const data = await register(email, password, username)
+    console.log('register data: ', data);
+    
+    console.log('status: ', data.status);
+    
+    if(String(data.status) != 'success') {
+     return Alert.alert("ChatX","Failed to register. Please try again.")
+    }
+    Alert.alert("ChatX","Registered successfully")
+  }
   return (
     <View className='flex-1 bg-black px-7 flex justify-center'>
       <Logo text='Signup to start your conversations' />
@@ -48,7 +65,7 @@ const RegisterScreen = () => {
           onChange={setUsername}
         />
 
-        <GradientButton onPress={() => console.log('button is active')} text="register" />
+        <GradientButton onPress={handleRegister} text="register" />
 
         <View className="flex-row items-center my-10">
           <View className="flex-1 h-[1px] bg-neutral-800" />

@@ -29,7 +29,7 @@ export const getAccessToken = async () => {
   return session?.accessToken ?? null;
 };
 
-export const setAccessToken = async (token: string) => {
+export const setAccessTokenToStorage = async (token: string) => {
   const session = await getUserSessionFromStorage();
   if (!session) return;
 

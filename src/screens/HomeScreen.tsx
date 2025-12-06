@@ -5,11 +5,16 @@ import { IChat } from '../types/Chats'
 import EvilIcons from '@expo/vector-icons/EvilIcons'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { NavigationProp, useNavigation } from '@react-navigation/native'
+import { MainNavigatorStackParamList } from '../navigation/types'
+
 const HomeScreen = () => {
 
   const [chats, setChats] = useState<IChat[]>([])
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
+
+  const navigation = useNavigation<NavigationProp<MainNavigatorStackParamList>>()
 
   useEffect(() => {
     loadChats()
@@ -24,11 +29,11 @@ const HomeScreen = () => {
     }
   }
 
-  console.log('chats : ' ,chats);
   
-  const filtered = chats.filter(chat =>
-    chat.otherUser?.username?.toLowerCase().includes(search.toLowerCase())
+  const filtered = chats?.filter(chat =>
+    chat?.otherUser?.username?.toLowerCase().includes(search.toLowerCase())
   )
+
 
   return (
     <SafeAreaView className="flex-1 bg-black" edges={['top']}>
@@ -60,7 +65,7 @@ const HomeScreen = () => {
         )}
 
         {/* EMPTY STATE */}
-        {!loading && filtered.length === 0 && (
+        {!loading && filtered?.length === 0 && (
           <View className="flex-1 items-center justify-center">
             <Text className="text-neutral-500 text-[16px]">
               Henüz bir sohbet yok
@@ -79,6 +84,7 @@ const HomeScreen = () => {
             return (
               <TouchableOpacity
                 className="flex-row items-center p-4 rounded-2xl mb-2 bg-neutral-900 border border-neutral-800 active:bg-neutral-800"
+                onPress={() => navigation.navigate('ChatScreen', { chatId: item._id })}
               >
                 <View className="w-12 h-12 rounded-full bg-blue-600 items-center justify-center shadow-md shadow-blue-500/40">
                   <EvilIcons name="user" size={30} color="white" />

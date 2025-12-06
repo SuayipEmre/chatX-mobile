@@ -20,11 +20,23 @@ const ProfileScreen = () => {
   }, []);
 
   const handleLogout = async () => {
+    console.log('Logging out...');
+    
+  try {
     const res = await logout();
+    console.log('Logout response:', res);
+    
     if (res?.statusCode === 200) {
       setUserSession(null);
       clearUserSessionFromStorage();
     }
+
+    console.log('res : ', res);
+  } catch (error) {
+    console.log('error : ', error);
+    
+  }
+    
   };
 
   return (

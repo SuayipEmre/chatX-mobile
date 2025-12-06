@@ -38,6 +38,8 @@ const RootNavigator = () => {
         getUser()
     }, [])
 
+    console.log('USER : user', user);
+    
     if (!user) return <NavigationContainer>
         <Stack.Navigator>
             <Stack.Screen
