@@ -80,11 +80,12 @@ const HomeScreen = () => {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
             const user = item.otherUser
-
+            console.log('user: ', user);
+            
             return (
               <TouchableOpacity
                 className="flex-row items-center p-4 rounded-2xl mb-2 bg-neutral-900 border border-neutral-800 active:bg-neutral-800"
-                onPress={() => navigation.navigate('ChatScreen', { chatId: item._id })}
+                onPress={() => navigation.navigate('ChatScreen', { chatId: item._id, otherUserName: user?.username })}
               >
                 <View className="w-12 h-12 rounded-full bg-blue-600 items-center justify-center shadow-md shadow-blue-500/40">
                   <EvilIcons name="user" size={30} color="white" />

@@ -8,7 +8,7 @@ import AuthenticationStack from './AuthenticationStack'
 import { useUserSession } from '../store/feature/user/hooks'
 import { getUserSessionFromStorage } from '../utils/storage'
 import { setUserSession } from '../store/feature/user/actions'
-import MainNavigator from './MainNavigator'
+import MainNavigator from './MainStack'
 import AntDesign from '@expo/vector-icons/AntDesign';
 import ProfileNavigator from './ProfileStack'
 import Feather from '@expo/vector-icons/Feather';
