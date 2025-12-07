@@ -1,8 +1,19 @@
 import api from "./api";
-import { setAccessToken } from "../utils/storage";
 
 export const fetchUserProfile = async () => {
   const res = await api.get("/users/me");
   return res.data.data;
 };
 
+
+export const fetchSearchUsers = async (
+  query: string,
+  page: number = 1,
+  limit: number = 10
+) => {
+  const res = await api.get(
+    `/users/search?query=${query}&page=${page}&limit=${limit}`
+  );
+
+  return res.data.data; 
+};

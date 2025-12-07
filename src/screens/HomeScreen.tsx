@@ -1,21 +1,42 @@
-import { Text, View, TouchableOpacity, TextInput, ActivityIndicator, FlatList } from 'react-native'
+import {
+  Text,
+  View,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  Alert
+} from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { fetchChats } from '../service/chat.service'
+import { createChat, fetchChats } from '../service/chat.service'
+import { fetchSearchUsers } from '../service/user.service'
 import { IChat } from '../types/Chats'
 import EvilIcons from '@expo/vector-icons/EvilIcons'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6'
 import { NavigationProp, useNavigation } from '@react-navigation/native'
 import { MainNavigatorStackParamList } from '../navigation/types'
+import CreateChatModal from '../components/SearchUserModal'
 
 const HomeScreen = () => {
-
   const [chats, setChats] = useState<IChat[]>([])
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
 
+  const [isModalVisible, setIsModalVisible] = useState(false)
+
+  const [modalSearch, setModalSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchedUsers, setSearchedUsers] = useState<any[]>([])
+
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+
   const navigation = useNavigation<NavigationProp<MainNavigatorStackParamList>>()
 
+  // ✅ CHATLARI ÇEK
   useEffect(() => {
     loadChats()
   }, [])
@@ -29,17 +50,39 @@ const HomeScreen = () => {
     }
   }
 
-  
   const filtered = chats?.filter(chat =>
     chat?.otherUser?.username?.toLowerCase().includes(search.toLowerCase())
   )
 
 
+
+  const handleCreateChat = async (username: string, userId: string) => {
+
+    try {
+      const chatData = await createChat(userId)
+
+      console.log("Created or accessed chat:", chatData);
+
+      if (!chatData) {
+        return Alert.alert("Error", "Could not create or access chat.")
+      }
+
+      setIsModalVisible(false)
+      navigation.navigate('ChatScreen', {
+        chatId: chatData._id,
+        otherUserName: username,
+      })
+    } catch (error) {
+
+    }
+
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-black" edges={['top']}>
       <View className="flex-1 px-4 pt-3">
 
-        {/* HEADER - Search */}
+        {/* HEADER */}
         <View className="mb-4">
           <Text className="text-white text-[28px] font-bold mb-3">
             Sohbetler
@@ -49,7 +92,7 @@ const HomeScreen = () => {
             <EvilIcons name="search" size={26} color="gray" />
             <TextInput
               className="text-white ml-2 flex-1 text-[16px]"
-              placeholder="Kullanıcı ara veya sohbet başlat"
+              placeholder="Search chats..."
               placeholderTextColor="#777"
               value={search}
               onChangeText={setSearch}
@@ -57,37 +100,30 @@ const HomeScreen = () => {
           </View>
         </View>
 
-        {/* LOADING */}
         {loading && (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#3b82f6" />
+            <ActivityIndicator size="large" color="white" />
           </View>
         )}
 
-        {/* EMPTY STATE */}
-        {!loading && filtered?.length === 0 && (
-          <View className="flex-1 items-center justify-center">
-            <Text className="text-neutral-500 text-[16px]">
-              Henüz bir sohbet yok
-            </Text>
-          </View>
-        )}
-
-        {/* CHAT LIST */}
         <FlatList
           data={filtered}
           keyExtractor={(item) => item._id}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
             const user = item.otherUser
-            console.log('user: ', user);
-            
+
             return (
               <TouchableOpacity
-                className="flex-row items-center p-4 rounded-2xl mb-2 bg-neutral-900 border border-neutral-800 active:bg-neutral-800"
-                onPress={() => navigation.navigate('ChatScreen', { chatId: item._id, otherUserName: user?.username })}
+                className="flex-row items-center p-4 rounded-2xl mb-2 bg-neutral-900 border border-neutral-800"
+                onPress={() =>
+                  navigation.navigate('ChatScreen', {
+                    chatId: item._id,
+                    otherUserName: user?.username,
+                  })
+                }
               >
-                <View className="w-12 h-12 rounded-full bg-blue-600 items-center justify-center shadow-md shadow-blue-500/40">
+                <View className="w-12 h-12 rounded-full bg-blue-600 items-center justify-center">
                   <EvilIcons name="user" size={30} color="white" />
                 </View>
 
@@ -95,24 +131,35 @@ const HomeScreen = () => {
                   <Text className="text-white text-[17px] font-semibold">
                     {user?.username}
                   </Text>
-
                   <Text className="text-neutral-500 text-[14px]">
-                    Sohbete başlamak için tıkla
+                    click to start chatting
                   </Text>
                 </View>
-
-                <Text className="text-neutral-600 text-xs">
-                  {new Date(item.createdAt).toLocaleTimeString("tr-TR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Text>
               </TouchableOpacity>
             )
           }}
         />
 
-        <FontAwesome6 name="add" size={24} color="blue" className='absolute right-10 bottom-10 z-50 border border-gray-500 p-5 rounded-full' />
+        <FontAwesome6
+          name="add"
+          size={24}
+          color="blue"
+          className="absolute right-10 bottom-10 border border-gray-500 p-5 rounded-full"
+          onPress={() => {
+            setModalSearch("")
+            setSearchedUsers([])
+            setPage(1)
+            setHasMore(true)
+            setIsModalVisible(true)
+          }}
+        />
+
+        <CreateChatModal
+          visible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          onCreateChat={handleCreateChat}
+        />
+
       </View>
     </SafeAreaView>
   )
