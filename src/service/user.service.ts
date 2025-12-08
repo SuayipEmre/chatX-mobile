@@ -17,3 +17,17 @@ export const fetchSearchUsers = async (
 
   return res.data.data; 
 };
+
+export const updateProfile = async (payload: {
+  email?: string;
+  username?: string;
+  avatar?: string;
+}) => {
+  const res = await api.put("/users/me", payload);
+  return res.data;
+};
+
+export const uploadAvatar = async (base64: string) => {
+  const res = await api.post("/users/me/avatar", { image: base64 });
+  return res.data.data.imageUrl;
+};

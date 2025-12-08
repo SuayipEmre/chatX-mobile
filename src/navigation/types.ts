@@ -6,11 +6,12 @@ export type AuthNavigatorStackParamList = {
 
 export type MainNavigatorStackParamList = {
     HomeScreen : undefined,
-    ProfileScreen : undefined,
     ChatScreen : { chatId: string, otherUserName?:string }
     
 }
 
 export type ProfileNavigatorStackParamList = {
-    ProfileScreen : undefined
+    ProfileScreen : undefined,
+    EditProfileScreen : undefined
+
 }

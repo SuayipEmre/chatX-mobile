@@ -1,11 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import { MainNavigatorStackParamList } from './types'
+import {  ProfileNavigatorStackParamList } from './types'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import ProfileScreen from '../screens/ProfileScreen'
+import EditProfileScreen from '../screens/EditProfileScreen'
 
 
-const Stack = createNativeStackNavigator<MainNavigatorStackParamList>()
+const Stack = createNativeStackNavigator<ProfileNavigatorStackParamList>()
 
 const ProfileNavigator = () => {
   return (
@@ -16,6 +17,15 @@ const ProfileNavigator = () => {
         },
         headerShown : false,
         headerTintColor : '#fff'
+      }} />
+
+      <Stack.Screen name='EditProfileScreen' component={EditProfileScreen}
+      options={{
+        headerStyle : {
+          backgroundColor:'#000',
+        },
+        headerTintColor : '#fff',
+        title : 'Edit Profile'
       }} />
     </Stack.Navigator>
   )

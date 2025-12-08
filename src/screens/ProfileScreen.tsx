@@ -1,14 +1,19 @@
-import { Text, TouchableOpacity, View } from "react-native";
+import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import Entypo from "@expo/vector-icons/Entypo";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { logout } from "../service/auth.service";
 import { setUserSession } from "../store/feature/user/actions";
 import { clearUserSessionFromStorage } from "../utils/storage";
 import { fetchUserProfile } from "../service/user.service";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { ProfileNavigatorStackParamList } from "../navigation/types";
 
 const ProfileScreen = () => {
   const [user, setUser] = useState<any>(null);
+  const navigation =
+    useNavigation<NavigationProp<ProfileNavigatorStackParamList>>();
 
   useEffect(() => {
     const getProfile = async () => {
@@ -19,71 +24,108 @@ const ProfileScreen = () => {
     getProfile();
   }, []);
 
+  console.log("user profile : ", user);
+  
   const handleLogout = async () => {
-    console.log('Logging out...');
-    
-  try {
-    const res = await logout();
-    console.log('Logout response:', res);
-    
-    if (res?.statusCode === 200) {
-      setUserSession(null);
-      clearUserSessionFromStorage();
-    }
+    try {
+      const res = await logout();
 
-    console.log('res : ', res);
-  } catch (error) {
-    console.log('error : ', error);
-    
-  }
-    
+      if (res?.statusCode === 200) {
+        setUserSession(null);
+        clearUserSessionFromStorage();
+      }
+    } catch (error) {
+      console.log("error : ", error);
+      Alert.alert(
+        "Logout Failed",
+        "An error occurred while logging out. Please try again."
+      );
+    }
   };
 
   return (
     <View className="flex-1 bg-black px-6 pt-16">
+      {/* HEADER */}
+      <View className="flex-row items-center justify-between mb-10">
+        <Text className="text-white text-3xl font-bold">Profile</Text>
 
-      {/* Header */}
-      <Text className="text-white text-3xl font-bold mb-10">
-        Profile
-      </Text>
+      
+        <TouchableOpacity
+          onPress={() => navigation.navigate("EditProfileScreen")}
+        >
+          <FontAwesome6 name="pen-to-square" size={20} color="#3b82f6" />
+        </TouchableOpacity>
+      </View>
 
-      {/* Avatar + Info */}
-      <View className="flex-row items-center">
-        {/* Avatar */}
-        <View className="w-20 h-20 rounded-full bg-neutral-800 items-center justify-center">
-          <EvilIcons name="user" size={55} color="white" />
+
+      <View className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6">
+        <View className="items-center flex-row  gap-5">
+
+          <View className="w-24 h-24 rounded-full bg-blue-600 items-center justify-center mb-4">
+            {
+              user?.avatar ? (
+                <Image
+                  source={{ uri: user?.avatar }}
+                  className="w-full h-full rounded-full"
+                  resizeMode="cover"
+                />
+              ) : (
+                <EvilIcons name="user" size={70} color="white" />
+              )
+            }
+          </View>
+
+          <View>
+            <Text className="text-white text-2xl font-bold">
+              {user?.username}
+            </Text>
+
+            <Text className="text-neutral-400 mt-2">{user?.email}</Text>
+          </View>
         </View>
 
-        <View className="ml-4">
-          <Text className="text-white text-xl font-semibold">
-            {user?.username}
-          </Text>
-          <Text className="text-neutral-400 mt-1">
-            {user?.email}
-          </Text>
+        {/* ✅ INFO ROWS */}
+        <View className="mt-8 gap-5">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-neutral-400">Username</Text>
+            <Text className="text-white font-semibold">
+              {user?.username}
+            </Text>
+          </View>
+
+          <View className="flex-row items-center justify-between">
+            <Text className="text-neutral-400">Email</Text>
+            <Text className="text-white font-semibold">
+              {user?.email}
+            </Text>
+          </View>
         </View>
       </View>
 
-      {/* Divider */}
-      <View className="h-[1px] bg-neutral-800 my-8" />
+      {/* ✅ ACTION BUTTONS */}
+      <View className="mt-10 gap-5">
+        {/* EDIT PROFILE BUTTON */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate("EditProfileScreen")}
+          className="flex-row items-center justify-center gap-3 bg-blue-600 py-4 rounded-2xl"
+        >
+          <FontAwesome6 name="user-pen" size={16} color="white" />
+          <Text className="text-white font-semibold text-lg">
+            Edit Profile
+          </Text>
+        </TouchableOpacity>
 
-      {/* Edit Profile Button */}
-      <TouchableOpacity
-        className="py-3 mb-5"
-      >
-        <Text className="text-blue-500 text-lg font-semibold">
-          Edit Profile
-        </Text>
-      </TouchableOpacity>
-
-      {/* Logout */}
-      <TouchableOpacity
-        onPress={handleLogout}
-        className="flex-row items-center gap-3"
-      >
-        <Entypo name="log-out" size={24} color="red" />
-        <Text className="text-red-500 font-semibold text-lg">Logout</Text>
-      </TouchableOpacity>
+        {/* LOGOUT */}
+        <TouchableOpacity
+          onPress={handleLogout}
+          className="flex-row items-center justify-center gap-3 bg-neutral-900 border border-red-500 py-4 rounded-2xl"
+        >
+          <Entypo name="log-out" size={22} color="red" />
+          <Text className="text-red-500 font-semibold text-lg">
+            Logout
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
