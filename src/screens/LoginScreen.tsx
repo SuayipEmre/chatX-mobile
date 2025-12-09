@@ -21,7 +21,6 @@ export default function LoginScreen() {
 
     try {
       const loginData = await login(email, password)
-      console.log('login data : ', loginData);
 
       if (loginData) {
         setUserSession(loginData)
