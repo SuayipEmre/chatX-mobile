@@ -1,26 +1,39 @@
-import api from "./api";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { chatxBaseQuery } from "./api";
 
-export const fetchMessagesByChatId = async (chatId: string) => {
+const MessageService = createApi({
+  reducerPath: 'MessageService',
 
-    try {
-        const res = await api.get('/messages/' + chatId);
+  baseQuery: chatxBaseQuery,
+  endpoints: (builder) => ({
 
-        return res.data.data;
-    } catch (error) {
-        return null
-    }
+    fetchMessagesByChatId: builder.query({
+      query: (chatId:string) => {
+        return {
+          url: `/messages/${chatId}`,
+          method: 'GET',
+        }
+      },
+    }),
 
-}
-
-export const sendMessage = async (chatId: string, content: string) => {
-    try {
-        const res = await api.post("/messages", {
+    sendMessage: builder.mutation({
+      query: ({chatId, content} : {chatId : string, content:  string} ) => {
+        return {
+          url: '/messages',
+          method: 'POST',
+          body: {
             chatId,
             content,
-        });
-        return res.data.data;
-    } catch (error) {
-        console.log("sendMessage error:", error);
-        throw error;
-    }
-};
+          }
+        }
+      },
+    }),
+
+  
+  })
+})
+export const {
+    useFetchMessagesByChatIdQuery,
+    useSendMessageMutation,
+} = MessageService
+export default MessageService

@@ -1,38 +1,28 @@
 import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import { logout } from "../service/auth.service";
 import { setUserSession } from "../store/feature/user/actions";
 import { clearUserSessionFromStorage } from "../utils/storage";
-import { fetchUserProfile } from "../service/user.service";
+import { useFetchUserProfileQuery } from "../service/user.service";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { ProfileNavigatorStackParamList } from "../navigation/types";
+import { useSendLogoutRequestMutation } from "../service/auth.service";
 
 const ProfileScreen = () => {
-  const [user, setUser] = useState<any>(null);
-  const navigation =
-    useNavigation<NavigationProp<ProfileNavigatorStackParamList>>();
+  const [logout] = useSendLogoutRequestMutation()
+  const navigation = useNavigation<NavigationProp<ProfileNavigatorStackParamList>>();
 
-  useEffect(() => {
-    const getProfile = async () => {
-      const data = await fetchUserProfile();
-      setUser(data);
-    };
+  const { data: user } = useFetchUserProfileQuery({})
 
-    getProfile();
-  }, []);
 
-  console.log("user profile : ", user);
-  
   const handleLogout = async () => {
     try {
-      const res = await logout();
-
+      const res = await logout().unwrap();
       if (res?.statusCode === 200) {
         setUserSession(null);
-        clearUserSessionFromStorage();
+        clearUserSessionFromStorage()
       }
     } catch (error) {
       console.log("error : ", error);
@@ -49,7 +39,7 @@ const ProfileScreen = () => {
       <View className="flex-row items-center justify-between mb-10">
         <Text className="text-white text-3xl font-bold">Profile</Text>
 
-      
+
         <TouchableOpacity
           onPress={() => navigation.navigate("EditProfileScreen")}
         >
@@ -63,9 +53,9 @@ const ProfileScreen = () => {
 
           <View className="w-24 h-24 rounded-full bg-blue-600 items-center justify-center mb-4">
             {
-              user?.avatar ? (
+              user?.data.avatar ? (
                 <Image
-                  source={{ uri: user?.avatar }}
+                  source={{ uri: user?.data.avatar }}
                   className="w-full h-full rounded-full"
                   resizeMode="cover"
                 />
@@ -77,10 +67,10 @@ const ProfileScreen = () => {
 
           <View>
             <Text className="text-white text-2xl font-bold">
-              {user?.username}
+              {user?.data.username}
             </Text>
 
-            <Text className="text-neutral-400 mt-2">{user?.email}</Text>
+            <Text className="text-neutral-400 mt-2">{user?.data.email}</Text>
           </View>
         </View>
 
@@ -89,14 +79,14 @@ const ProfileScreen = () => {
           <View className="flex-row items-center justify-between">
             <Text className="text-neutral-400">Username</Text>
             <Text className="text-white font-semibold">
-              {user?.username}
+              {user?.data.username}
             </Text>
           </View>
 
           <View className="flex-row items-center justify-between">
             <Text className="text-neutral-400">Email</Text>
             <Text className="text-white font-semibold">
-              {user?.email}
+              {user?.data.email}
             </Text>
           </View>
         </View>

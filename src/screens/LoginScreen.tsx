@@ -5,7 +5,7 @@ import GradientButton from "../components/GradientButton";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { AuthNavigatorStackParamList } from "../navigation/types";
 import Logo from "../components/Logo";
-import { login } from "../service/auth.service";
+import { useSendLoginRequestMutation } from "../service/auth.service";
 import { setUserSession } from "../store/feature/user/actions";
 import { setUserSessionToStorage } from "../utils/storage";
 
@@ -15,16 +15,19 @@ export default function LoginScreen() {
 
   const navigation = useNavigation<NavigationProp<AuthNavigatorStackParamList>>()
 
+  const [login, { isLoading, error }] = useSendLoginRequestMutation();
 
   const handleLogin = async () => {
     if (!email.includes('@') || password.length < 5) return console.log('cannot login')
 
     try {
-      const loginData = await login(email, password)
+      const loginData = await login({email, password}).unwrap();
 
+      console.log('loginData : ', loginData);
+      
       if (loginData) {
-        setUserSession(loginData)
-        setUserSessionToStorage(loginData)
+        setUserSession(loginData.data)
+        setUserSessionToStorage(loginData.data)
       }
 
     } catch (error) {

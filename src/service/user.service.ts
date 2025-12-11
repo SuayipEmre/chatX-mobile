@@ -1,33 +1,60 @@
-import api from "./api";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { chatxBaseQuery } from "./api";
 
-export const fetchUserProfile = async () => {
-  const res = await api.get("/users/me");
-  return res.data.data;
-};
+const UserService = createApi({
+  reducerPath: 'UserService',
 
+  baseQuery: chatxBaseQuery,
+  tagTypes: ['users'],
+  endpoints: (builder) => ({
 
-export const fetchSearchUsers = async (
-  query: string,
-  page: number = 1,
-  limit: number = 10
-) => {
-  const res = await api.get(
-    `/users/search?query=${query}&page=${page}&limit=${limit}`
-  );
+    fetchUserProfile: builder.query({
+      query: () => {
+        return {
+          url: `/users/me`,
+          method: 'GET',
+        }
+      },
+      providesTags: ['users']
+    }),
 
-  return res.data.data; 
-};
+    fetchSearchUsers : builder.query({
+      query: ({query, page = 1, limit =10} : {query : string, page?: number, limit?: number}) => {
+        return {
+          url: `/users/search?query=${query}&page=${page}&limit=${limit}`,
+          method: 'GET',
+        }
+      },
+    }),
 
-export const updateProfile = async (payload: {
-  email?: string;
-  username?: string;
-  avatar?: string;
-}) => {
-  const res = await api.put("/users/me", payload);
-  return res.data;
-};
+    updateProfile: builder.mutation({
+      query: (body) => {
+        return {
+          url: '/users/me',
+          method: 'PUT',
+          body,
+        }
+      },
+      invalidatesTags: ['users']
+    }),
 
-export const uploadAvatar = async (base64: string) => {
-  const res = await api.post("/users/me/avatar", { image: base64 });
-  return res.data.data.imageUrl;
-};
+    uploadAvatar:builder.mutation({
+      query: (base64 : string) => {
+        return {
+          url: '/users/me/avatar',
+          method: 'POST',
+          body: { image: base64 },
+        }
+      },
+      invalidatesTags: ['users']
+    })
+  })
+})
+export const {
+  useFetchUserProfileQuery,
+  useFetchSearchUsersQuery,
+  useUpdateProfileMutation,
+  useUploadAvatarMutation
+} = UserService
+export default UserService
+

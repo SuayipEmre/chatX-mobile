@@ -1,7 +1,7 @@
 import { Text, View, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, Alert, Image } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { useRoute } from '@react-navigation/native'
-import { fetchMessagesByChatId, sendMessage } from '../service/message.service'
+import {  useFetchMessagesByChatIdQuery, useSendMessageMutation } from '../service/message.service'
 import { IMessage } from '../types/Message'
 import { useUserSession } from '../store/feature/user/hooks'
 import { getSocket } from '../socket'
@@ -10,8 +10,10 @@ import UserDefaultIcon from '../components/UserDefaultIcon'
 const ChatScreen = () => {
     const user = useUserSession()
     const route = useRoute()
-    const { chatId, isGroupChat } = route.params as any
+    const { chatId, isGroupChat} = route.params as any
+    const { data : messageData,isLoading, isError , error} = useFetchMessagesByChatIdQuery(chatId)
 
+    const[sendMessage] = useSendMessageMutation()
 
     const [messages, setMessages] = useState<IMessage[]>([])
     const [content, setContent] = useState("")
@@ -20,6 +22,10 @@ const ChatScreen = () => {
     const socket = getSocket(currentUserId!)
 
 
+    console.log('isError:', isError);
+    console.log('error : ', error);
+    
+    
     const [keyboardOpen, setKeyboardOpen] = useState(false);
 
     useEffect(() => {
@@ -32,16 +38,14 @@ const ChatScreen = () => {
         };
     }, []);
 
+    console.log('messageData:', messageData);
+    
 
-    console.log('messages:', messages);
 
     useEffect(() => {
-        const load = async () => {
-            const data = await fetchMessagesByChatId(chatId)
-            if (data) setMessages(data)
-        }
-        load()
-    }, [chatId])
+        if(isLoading || isError) return;
+        setMessages(messageData.data || [])
+    }, [chatId, isLoading, isError])
 
     useEffect(() => {
         if (!currentUserId) return;
@@ -64,7 +68,7 @@ const ChatScreen = () => {
         try {
             if (!content.trim()) return
 
-            const newMessage = await sendMessage(chatId, content)
+            const newMessage = await sendMessage({chatId, content}).unwrap();
 
             setContent("")
             setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50)

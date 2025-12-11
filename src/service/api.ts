@@ -1,89 +1,87 @@
-import axios from "axios";
-import { getAccessToken, clearTokens, setAccessTokenToStorage } from "../utils/storage";
+import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import { getAccessToken, setAccessTokenToStorage, clearTokens } from '../utils/storage';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
-// main axios instance
-const api = axios.create({
-  baseURL: BASE_URL,
-  withCredentials: true, 
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: BASE_URL,
+  credentials: "include",
+  prepareHeaders: async (headers) => {
+    const token = await getAccessToken();
+
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+
+    return headers;
+  },
 });
 
-api.interceptors.request.use(async (config) => {
-  const token = await getAccessToken();
 
-  console.log('Attaching token to request:', token);
-  
-  if (token) {
-    config.headers = config.headers || {};
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
-
-// Response interceptor → 401 → Refresh
 let isRefreshing = false;
-let failedQueue: any[] = [];
+let failedQueue: {
+  resolve: (value?: unknown) => void;
+  reject: (reason?: any) => void;
+}[] = [];
 
 const processQueue = (error: any, token: string | null) => {
   failedQueue.forEach((prom) => {
     if (error) prom.reject(error);
     else prom.resolve(token);
   });
-
   failedQueue = [];
 };
 
-api.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    const originalRequest = err.config;
+export const chatxBaseQuery: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+  let result = await rawBaseQuery(args, api, extraOptions);
 
-    // Token expired → 401
-    if (err?.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      if (isRefreshing) {
-        // refresh bekleyen istekler kuyruğa alınır
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers["Authorization"] = "Bearer " + token;
-            return api(originalRequest);
-          })
-          .catch((e) => Promise.reject(e));
-      }
-
+  if (result.error && result.error.status === 401) {
+    if (!isRefreshing) {
       isRefreshing = true;
 
       try {
-        // Refresh isteği
-        const refreshRes = await axios.get(`${BASE_URL}/users/refresh-token`, {
-          withCredentials: true,
-        });
+        const refreshResult = await rawBaseQuery(
+          { url: "/users/refresh-token", method: "GET" },
+          api,
+          extraOptions
+        );
 
-        const newAccessToken = refreshRes.data.data.accessToken;
-        await setAccessTokenToStorage(newAccessToken);
+        if (refreshResult.data) {
+          const newToken = (refreshResult.data as any).data.accessToken;
 
-        api.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${newAccessToken}`;
+          await setAccessTokenToStorage(newToken);
 
-        processQueue(null, newAccessToken);
-        return api(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError, null);
+          processQueue(null, newToken);
+
+          isRefreshing = false;
+
+          // Retry original request
+          return await rawBaseQuery(args, api, extraOptions);
+        } else {
+          throw refreshResult.error;
+        }
+      } catch (err) {
+        processQueue(err, null);
         await clearTokens();
-        return Promise.reject(refreshError);
-      } finally {
+
         isRefreshing = false;
+
+        return result; 
       }
     }
 
-    return Promise.reject(err);
+    return new Promise((resolve, reject) => {
+      failedQueue.push({
+        resolve: (token) => resolve(rawBaseQuery(args, api, extraOptions)),
+        reject: (err) => reject(err),
+      });
+    }) as any;
   }
-);
 
-export default api;
+  return result;
+};

@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { createChat, fetchChats, createGroupChat } from '../service/chat.service'
+import { useCreateChatMutation, useCreateGroupChatMutation, useFetchChatsQuery } from '../service/chat.service'
 import { IChat } from '../types/Chats'
 import EvilIcons from '@expo/vector-icons/EvilIcons'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -21,19 +21,20 @@ import { getSocket } from '../socket'
 import UserDefaultIcon from '../components/UserDefaultIcon'
 
 const HomeScreen = () => {
-  const [chats, setChats] = useState<IChat[]>([])
   const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
   const [isModalVisible, setIsModalVisible] = useState(false)
 
   const userSession = useUserSession()
 
-  const navigation =
-    useNavigation<NavigationProp<MainNavigatorStackParamList>>()
+  const[createChat] = useCreateChatMutation()
+  const[createGroupChat] = useCreateGroupChatMutation()
+  const{data : chatData, isLoading} = useFetchChatsQuery({})
 
-  useEffect(() => {
-    loadChats()
-  }, [])
+
+  
+  const navigation = useNavigation<NavigationProp<MainNavigatorStackParamList>>()
+
+
 
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
@@ -56,21 +57,8 @@ const HomeScreen = () => {
 
 
 
-  const loadChats = async () => {
-    try {
-      const data = await fetchChats()
-      setChats(data)
-    } catch (e) {
-      console.log('Error fetching chats', e);
-
-    }
-    finally {
-      setLoading(false)
-    }
-  }
-
   const filtered = () => {
-    return chats?.filter(chat => {
+    return chatData?.data.filter((chat : IChat) => {
       if (chat.isGroupChat) return chat.chatName?.toLowerCase().includes(search.toLowerCase());
       return chat?.otherUser?.username?.toLowerCase().includes(search.toLowerCase())
     })
@@ -81,16 +69,16 @@ const HomeScreen = () => {
     users: { _id: string; username: string }[],
     groupName?: string
   ) => {
+
+
+    
     try {
       if (users.length === 1) {
-        const chatData = await createChat(users[0]._id)
-
+        const chatData = await createChat(users[0]._id).unwrap()
         setIsModalVisible(false)
 
-        console.log('chatData:', chatData);
-        
         return navigation.navigate('ChatScreen', {
-          chatId: chatData._id,
+          chatId: chatData.data._id,
           otherUserName: users[0].username,
           isGroupChat : false
         })
@@ -111,11 +99,12 @@ const HomeScreen = () => {
       setIsModalVisible(false)
 
       navigation.navigate('ChatScreen', {
-        chatId: groupData.chat._id,
-        otherUserName: groupData.groupName,
+        chatId: groupData.data.data.chat._id,
+        otherUserName:  groupData.data.data.group.groupName,
         isGroupChat: true
       })
     } catch (error) {
+      console.log('error creating chat/group:', error);
       Alert.alert('Error', 'Chat oluşturulamadı')
     }
   }
@@ -141,7 +130,7 @@ const HomeScreen = () => {
           </View>
         </View>
 
-        {loading && (
+        {isLoading && (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="white" />
           </View>

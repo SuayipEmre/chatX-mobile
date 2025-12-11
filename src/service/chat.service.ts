@@ -1,21 +1,52 @@
-import api from "./api";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { chatxBaseQuery } from "./api";
 
-export const fetchChats = async () => {
-  try {
-    const res = await api.get("/chats");
-    return res.data.data;
-  } catch (error) {
-    return null
-  }
-};
+const ChatService = createApi({
+  reducerPath: 'ChatService',
 
+  baseQuery: chatxBaseQuery,
+  tagTypes: ['Chats'],
+  endpoints: (builder) => ({
 
-export const createChat = async (userId: string) => {
-  const res = await api.post("/chats", { userId });
-  return res.data.data;
-}
+    fetchChats: builder.query({
+      query: () => {
+        return {
+          url: '/chats',
+          method: 'GET',
+        }
+      },
+      providesTags: ['Chats']
+    }),
 
-export const createGroupChat = async (data: { users: string[]; groupName: string, adminId? : string }) => {
-  const res = await api.post("/groups/create", {...data});
-  return res.data.data;
-}
+    createChat: builder.mutation({
+      query: (userId) => {
+        return {
+          url: '/chats',
+          method: 'POST',
+          body: {
+            userId
+          }
+        }
+      },
+      invalidatesTags: ['Chats']
+    }),
+
+    createGroupChat: builder.mutation({
+      query: (body) => {
+        return {
+          url: '/groups/create',
+          method: 'POST',
+          body,
+        }
+      },
+      invalidatesTags: ['Chats']
+    })
+  })
+})
+export const {
+  useFetchChatsQuery,
+  useCreateChatMutation,
+  useCreateGroupChatMutation
+} = ChatService
+export default ChatService
+

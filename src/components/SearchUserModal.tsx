@@ -10,7 +10,7 @@ import {
 import React, { useEffect, useState } from 'react'
 import EvilIcons from '@expo/vector-icons/EvilIcons'
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6'
-import { fetchSearchUsers } from '../service/user.service'
+import { useFetchSearchUsersQuery } from '../service/user.service'
 import { User, UserSession } from '../types/UserSessionType'
 
 interface Props {
@@ -20,16 +20,32 @@ interface Props {
     users: { _id: string; username: string }[],
     groupName?: string
   ) => void,
-  userSession : UserSession | null | undefined
+  userSession: UserSession | null | undefined
 }
 
-const CreateChatModal = ({ visible, onClose, onCreateChat, userSession}: Props) => {
+const CreateChatModal = ({ visible, onClose, onCreateChat, userSession }: Props) => {
   const [modalSearch, setModalSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [searchLoading, setSearchLoading] = useState(false)
   const [searchedUsers, setSearchedUsers] = useState<any[]>([])
   const [selectedUsers, setSelectedUsers] = useState<any[]>([])
   const [groupName, setGroupName] = useState('')
+
+  const {
+    data,
+    isLoading,
+    isError
+  } = useFetchSearchUsersQuery
+      (
+        { query: debouncedSearch, page: 1, limit: 10 },
+        { skip: !debouncedSearch.trim() || debouncedSearch.length < 2 }
+      )
+
+  console.log('data:', data);
+
+  useEffect(() => {
+    if(isError || isLoading) return
+    setSearchedUsers(data?.data.data || [])
+  }, [debouncedSearch])
 
   // ✅ DEBOUNCE
   useEffect(() => {
@@ -40,24 +56,7 @@ const CreateChatModal = ({ visible, onClose, onCreateChat, userSession}: Props) 
     return () => clearTimeout(timer)
   }, [modalSearch])
 
-  useEffect(() => {
-    if (!debouncedSearch.trim() || debouncedSearch.length < 2) {
-      setSearchedUsers([])
-      return
-    }
 
-    const searchUsers = async () => {
-      try {
-        setSearchLoading(true)
-        const result = await fetchSearchUsers(debouncedSearch, 1, 10)
-        setSearchedUsers(result.data ?? result)
-      } finally {
-        setSearchLoading(false)
-      }
-    }
-
-    searchUsers()
-  }, [debouncedSearch])
 
   const toggleUser = (user: any) => {
     const exists = selectedUsers.find(u => u._id === user._id)
@@ -118,7 +117,7 @@ const CreateChatModal = ({ visible, onClose, onCreateChat, userSession}: Props) 
           <EvilIcons name="search" size={26} color="white" />
         </View>
 
-        {searchLoading && <ActivityIndicator size="large" color="white" />}
+        {isLoading && <ActivityIndicator size="large" color="white" />}
 
         {/* ✅ USER LIST */}
         <FlatList
@@ -133,11 +132,10 @@ const CreateChatModal = ({ visible, onClose, onCreateChat, userSession}: Props) 
             return (
               <TouchableOpacity
                 activeOpacity={0.8}
-                className={`flex-row items-center p-4 rounded-2xl mb-3 border ${
-                  isSelected
-                    ? 'bg-blue-800 border-blue-500'
-                    : 'bg-neutral-900 border-neutral-800'
-                }`}
+                className={`flex-row items-center p-4 rounded-2xl mb-3 border ${isSelected
+                  ? 'bg-blue-800 border-blue-500'
+                  : 'bg-neutral-900 border-neutral-800'
+                  }`}
                 onPress={() => toggleUser(item)}
               >
                 <View className="w-12 h-12 rounded-full bg-blue-600 items-center justify-center">

@@ -5,7 +5,7 @@ import AuthFormInput from '../components/AuthFormInput'
 import GradientButton from '../components/GradientButton'
 import { NavigationProp, useNavigation } from '@react-navigation/native'
 import { AuthNavigatorStackParamList } from '../navigation/types'
-import { register } from '../service/auth.service'
+import { useSendRegisterRequestMutation } from '../service/auth.service'
 
 const RegisterScreen = () => {
   const [email, setEmail] = useState('')
@@ -15,13 +15,16 @@ const RegisterScreen = () => {
 
   const navigation = useNavigation<NavigationProp<AuthNavigatorStackParamList>>()
 
+
+  const [register] = useSendRegisterRequestMutation()
+
   const handleRegister = async() => {
     
     if(password !== repassword) {
       Alert.alert("ChatX","Passwords do not match")
       return
     }
-    const data = await register(email, password, username)
+    const data = await register({email, password, username}).unwrap()
     console.log('register data: ', data);
     
     console.log('status: ', data.status);
