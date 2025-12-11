@@ -4,7 +4,6 @@ export const fetchMessagesByChatId = async (chatId: string) => {
 
     try {
         const res = await api.get('/messages/' + chatId);
-        console.log('res : ', res);
 
         return res.data.data;
     } catch (error) {

@@ -18,6 +18,7 @@ import { MainNavigatorStackParamList } from '../navigation/types'
 import CreateChatModal from '../components/SearchUserModal'
 import { useUserSession } from '../store/feature/user/hooks'
 import { getSocket } from '../socket'
+import UserDefaultIcon from '../components/UserDefaultIcon'
 
 const HomeScreen = () => {
   const [chats, setChats] = useState<IChat[]>([])
@@ -26,7 +27,7 @@ const HomeScreen = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
 
   const userSession = useUserSession()
-  
+
   const navigation =
     useNavigation<NavigationProp<MainNavigatorStackParamList>>()
 
@@ -36,38 +37,41 @@ const HomeScreen = () => {
 
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
-useEffect(() => {
-  const socket = getSocket(userSession?.user._id!);
+  useEffect(() => {
+    const socket = getSocket(userSession?.user._id!);
 
-  socket.on("user_online", (userId: string) => {
-    setOnlineUsers((prev) => [...new Set([...prev, userId])]);
-  });
+    socket.on("user_online", (userId: string) => {
+      setOnlineUsers((prev) => [...new Set([...prev, userId])]);
+    });
 
-  socket.on("user_offline", (userId: string) => {
-    setOnlineUsers((prev) => prev.filter((id) => id !== userId));
-  });
+    socket.on("user_offline", (userId: string) => {
+      setOnlineUsers((prev) => prev.filter((id) => id !== userId));
+    });
 
-  return () => {
-    socket.off("user_online");
-    socket.off("user_offline");
-  };
-}, [userSession]);
+    return () => {
+      socket.off("user_online");
+      socket.off("user_offline");
+    };
+  }, [userSession]);
 
-console.log('Online Users:', onlineUsers);
 
 
   const loadChats = async () => {
     try {
       const data = await fetchChats()
       setChats(data)
-    } finally {
+    } catch (e) {
+      console.log('Error fetching chats', e);
+
+    }
+    finally {
       setLoading(false)
     }
   }
 
   const filtered = () => {
     return chats?.filter(chat => {
-      if(chat.isGroupChat) return chat.chatName?.toLowerCase().includes(search.toLowerCase());
+      if (chat.isGroupChat) return chat.chatName?.toLowerCase().includes(search.toLowerCase());
       return chat?.otherUser?.username?.toLowerCase().includes(search.toLowerCase())
     })
 
@@ -83,22 +87,25 @@ console.log('Online Users:', onlineUsers);
 
         setIsModalVisible(false)
 
+        console.log('chatData:', chatData);
+        
         return navigation.navigate('ChatScreen', {
           chatId: chatData._id,
           otherUserName: users[0].username,
+          isGroupChat : false
         })
       }
 
       const addedAdminId = users.find(u => u._id === userSession?.user._id)
 
-      if(!addedAdminId){
+      if (!addedAdminId) {
         users.push({ _id: userSession!.user._id, username: userSession!.user.username })
       }
 
       const groupData = await createGroupChat({
         users: users.map(u => u._id),
         groupName: groupName || 'New Group',
-        adminId:  userSession?.user._id
+        adminId: userSession?.user._id
       })
 
       setIsModalVisible(false)
@@ -106,6 +113,7 @@ console.log('Online Users:', onlineUsers);
       navigation.navigate('ChatScreen', {
         chatId: groupData.chat._id,
         otherUserName: groupData.groupName,
+        isGroupChat: true
       })
     } catch (error) {
       Alert.alert('Error', 'Chat oluşturulamadı')
@@ -145,6 +153,8 @@ console.log('Online Users:', onlineUsers);
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
             const user = item.otherUser
+            
+            
             return (
               <TouchableOpacity
                 className="flex-row items-center p-4 rounded-2xl mb-2 bg-neutral-900 border border-neutral-800"
@@ -152,12 +162,11 @@ console.log('Online Users:', onlineUsers);
                   navigation.navigate('ChatScreen', {
                     chatId: item._id,
                     otherUserName: user?.username,
+                    isGroupChat : item.isGroupChat
                   })
                 }
               >
-                <View className="w-12 h-12 rounded-full bg-blue-600 items-center justify-center">
-                  <EvilIcons name="user" size={30} color="white" />
-                </View>
+             <UserDefaultIcon />
 
                 <View className="flex-1 ml-3">
                   <Text className="text-white text-[17px] font-semibold">

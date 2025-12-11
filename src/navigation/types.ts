@@ -6,7 +6,7 @@ export type AuthNavigatorStackParamList = {
 
 export type MainNavigatorStackParamList = {
     HomeScreen : undefined,
-    ChatScreen : { chatId: string, otherUserName?:string }
+    ChatScreen : { chatId: string, otherUserName?:string, isGroupChat:boolean }
     
 }
 

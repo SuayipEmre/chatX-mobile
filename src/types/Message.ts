@@ -15,6 +15,7 @@ export interface IMessage {
       _id: string;
       username: string;
       email: string;
+      avatar?: string;
     };
     readBy: string[] | { _id: string; username: string }[];
     createdAt: string;
