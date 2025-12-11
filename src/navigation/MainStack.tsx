@@ -6,6 +6,7 @@ import HomeScreen from '../screens/HomeScreen'
 import ChatScreen from '../screens/ChatScreen'
 
 import AntDesign from '@expo/vector-icons/AntDesign';
+import CustomChatScreenHeader from './CustomChatScreenHeader'
 const Stack = createNativeStackNavigator<MainNavigatorStackParamList>()
 
 const MainNavigator = () => {
@@ -23,19 +24,7 @@ const MainNavigator = () => {
         options={({ route, navigation }) => (
           {
 
-            header: () => (
-              <View
-                className='bg-black h-[90px] pt-10 items-center flex-row justify-between px-5 '
-              >
-                <AntDesign name="arrow-left" size={24} color="white" onPress={() => navigation.goBack()} />
-
-                <Text style={{ color: "#fff", fontSize: 18, fontWeight: "600" }}>
-                  {route.params?.otherUserName || "Chat"}
-                </Text>
-
-                <Text />
-              </View>
-            ),
+            header: () => (<CustomChatScreenHeader route={route} navigation={navigation} />),
 
             headerStyle: {
               backgroundColor: '#000',

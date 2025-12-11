@@ -14,8 +14,8 @@ const ChatScreen = () => {
     const [messages, setMessages] = useState<IMessage[]>([])
     const [content, setContent] = useState("")
     const flatListRef = useRef<FlatList<any>>(null)
-    const socket = getSocket()
     const currentUserId = user?.user._id
+    const socket = getSocket(currentUserId!)
 
 
     const [keyboardOpen, setKeyboardOpen] = useState(false);
@@ -39,23 +39,22 @@ const ChatScreen = () => {
         load()
     }, [chatId])
 
-    // SOCKET LISTENERS
     useEffect(() => {
-        socket.emit("join_chat", chatId)
-
+        if (!currentUserId) return;
+      
+        const socket = getSocket(currentUserId);
+      
+        socket.emit("join_chat", chatId);
+      
         socket.on("message_received", (message: IMessage) => {
-            setMessages(prev => [...prev, message])
-
-            setTimeout(() => {
-                flatListRef.current?.scrollToEnd({ animated: true })
-            }, 50)
-        })
-
+          setMessages(prev => [...prev, message]);
+        });
+      
         return () => {
-            socket.emit("leave_chat", chatId)
-            socket.off("message_received")
-        }
-    }, [chatId])
+          socket.emit("leave_chat", chatId);
+          socket.off("message_received");
+        };
+      }, [chatId, currentUserId]);
 
     const handleSend = async () => {
        try {

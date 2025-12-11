@@ -17,6 +17,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native'
 import { MainNavigatorStackParamList } from '../navigation/types'
 import CreateChatModal from '../components/SearchUserModal'
 import { useUserSession } from '../store/feature/user/hooks'
+import { getSocket } from '../socket'
 
 const HomeScreen = () => {
   const [chats, setChats] = useState<IChat[]>([])
@@ -25,7 +26,6 @@ const HomeScreen = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
 
   const userSession = useUserSession()
-  console.log('user in home screen:', userSession);
   
   const navigation =
     useNavigation<NavigationProp<MainNavigatorStackParamList>>()
@@ -33,6 +33,28 @@ const HomeScreen = () => {
   useEffect(() => {
     loadChats()
   }, [])
+
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+
+useEffect(() => {
+  const socket = getSocket(userSession?.user._id!);
+
+  socket.on("user_online", (userId: string) => {
+    setOnlineUsers((prev) => [...new Set([...prev, userId])]);
+  });
+
+  socket.on("user_offline", (userId: string) => {
+    setOnlineUsers((prev) => prev.filter((id) => id !== userId));
+  });
+
+  return () => {
+    socket.off("user_online");
+    socket.off("user_offline");
+  };
+}, [userSession]);
+
+console.log('Online Users:', onlineUsers);
+
 
   const loadChats = async () => {
     try {
@@ -44,18 +66,13 @@ const HomeScreen = () => {
   }
 
   const filtered = () => {
-    const searchedChats = chats?.filter(chat => {//chatName
+    return chats?.filter(chat => {
       if(chat.isGroupChat) return chat.chatName?.toLowerCase().includes(search.toLowerCase());
       return chat?.otherUser?.username?.toLowerCase().includes(search.toLowerCase())
     })
 
-    return searchedChats
-
   }
-  console.log('Chats in home screen:', chats);
-  console.log('filtered chats:', filtered);
-  
-  
+
   const handleCreateMultipleChat = async (
     users: { _id: string; username: string }[],
     groupName?: string
@@ -101,7 +118,7 @@ const HomeScreen = () => {
         {/* HEADER */}
         <View className="mb-4">
           <Text className="text-white text-[28px] font-bold mb-3">
-            Sohbetler
+            Chats
           </Text>
 
           <View className="bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-3 flex-row items-center">
@@ -128,13 +145,6 @@ const HomeScreen = () => {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
             const user = item.otherUser
-           
-            
-           
-            console.log('name : ', item.isGroupChat ? item.chatName : user?.username);
-            
-            
-            
             return (
               <TouchableOpacity
                 className="flex-row items-center p-4 rounded-2xl mb-2 bg-neutral-900 border border-neutral-800"
