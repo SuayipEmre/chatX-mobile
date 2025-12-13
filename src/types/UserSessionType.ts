@@ -11,4 +11,6 @@ export interface User {
     createdAt: Date;
     updatedAt: Date;
     __v:       number;
+    avatar?: string;
+    
 }

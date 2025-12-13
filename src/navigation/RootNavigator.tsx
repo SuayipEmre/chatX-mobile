@@ -33,6 +33,8 @@ const RootNavigator = () => {
     useEffect(() => {
         const getUser = async () => {
             const user = await getUserSessionFromStorage()
+            console.log('on root : ', user);
+            
             setUserSession(user ?? null)
         }
         getUser()

@@ -24,7 +24,15 @@ const MainNavigator = () => {
         options={({ route, navigation }) => (
           {
 
-            header: () => (<CustomChatScreenHeader route={route} navigation={navigation} />),
+            header: () => (<CustomChatScreenHeader
+              route={route}
+              navigation={navigation}
+              isGroupChat={route.params.isGroupChat } 
+              chatId = {route.params.chatId}
+              avatarUrl = {route.params.avatarUrl}
+              />
+            
+            ),
 
             headerStyle: {
               backgroundColor: '#000',

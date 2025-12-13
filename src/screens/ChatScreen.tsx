@@ -12,7 +12,7 @@ const ChatScreen = () => {
     const route = useRoute()
     const { chatId, isGroupChat} = route.params as any
     const { data : messageData,isLoading, isError , error} = useFetchMessagesByChatIdQuery(chatId)
-
+    
     const[sendMessage] = useSendMessageMutation()
 
     const [messages, setMessages] = useState<IMessage[]>([])
@@ -21,11 +21,6 @@ const ChatScreen = () => {
     const currentUserId = user?.user._id
     const socket = getSocket(currentUserId!)
 
-
-    console.log('isError:', isError);
-    console.log('error : ', error);
-    
-    
     const [keyboardOpen, setKeyboardOpen] = useState(false);
 
     useEffect(() => {
@@ -37,10 +32,6 @@ const ChatScreen = () => {
             hideSub.remove();
         };
     }, []);
-
-    console.log('messageData:', messageData);
-    
-
 
     useEffect(() => {
         if(isLoading || isError) return;
@@ -79,8 +70,6 @@ const ChatScreen = () => {
 
     const renderMessage = ({ item }: { item: IMessage }) => {
         const isMine = item.sender._id === currentUserId
-
-        console.log('item:', item);
 
         return (
             <View className={`flex-row my-1 px-1 ${isMine ? "justify-end" : "justify-start"}`}>

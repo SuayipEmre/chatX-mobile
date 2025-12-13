@@ -46,7 +46,7 @@ export const chatxBaseQuery: BaseQueryFn<
 
       try {
         const refreshResult = await rawBaseQuery(
-          { url: "/users/refresh-token", method: "GET" },
+          { url: "/users/refresh-token", method: "POST" },
           api,
           extraOptions
         );

@@ -14,8 +14,10 @@ const ProfileScreen = () => {
   const [logout] = useSendLogoutRequestMutation()
   const navigation = useNavigation<NavigationProp<ProfileNavigatorStackParamList>>();
 
-  const { data: user } = useFetchUserProfileQuery({})
+  const { data: user, error } = useFetchUserProfileQuery({})
 
+  console.log('erroasdasfr : ', error);
+  
 
   const handleLogout = async () => {
     try {

@@ -66,10 +66,13 @@ const HomeScreen = () => {
   }
 
   const handleCreateMultipleChat = async (
-    users: { _id: string; username: string }[],
+    users: { _id: string; username: string, avatarUrl?: string }[],
     groupName?: string
   ) => {
 
+
+    console.log('users: ', users);
+    
 
     
     try {
@@ -80,14 +83,15 @@ const HomeScreen = () => {
         return navigation.navigate('ChatScreen', {
           chatId: chatData.data._id,
           otherUserName: users[0].username,
-          isGroupChat : false
+          isGroupChat : false,
+          avatarUrl : users[0].avatarUrl
         })
       }
 
       const addedAdminId = users.find(u => u._id === userSession?.user._id)
 
       if (!addedAdminId) {
-        users.push({ _id: userSession!.user._id, username: userSession!.user.username })
+        users.push({ _id: userSession!.user._id, username: userSession!.user.username, avatarUrl: userSession!.user.avatar })
       }
 
       const groupData = await createGroupChat({
@@ -101,7 +105,8 @@ const HomeScreen = () => {
       navigation.navigate('ChatScreen', {
         chatId: groupData.data.data.chat._id,
         otherUserName:  groupData.data.data.group.groupName,
-        isGroupChat: true
+        isGroupChat: true,
+        avatarUrl : undefined
       })
     } catch (error) {
       console.log('error creating chat/group:', error);
@@ -142,7 +147,7 @@ const HomeScreen = () => {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
             const user = item.otherUser
-            
+            console.log('users : ', user);
             
             return (
               <TouchableOpacity
@@ -151,7 +156,8 @@ const HomeScreen = () => {
                   navigation.navigate('ChatScreen', {
                     chatId: item._id,
                     otherUserName: user?.username,
-                    isGroupChat : item.isGroupChat
+                    isGroupChat : item.isGroupChat,
+                    avatarUrl : user?.avatar
                   })
                 }
               >

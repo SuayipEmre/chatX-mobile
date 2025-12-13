@@ -33,15 +33,13 @@ const CreateChatModal = ({ visible, onClose, onCreateChat, userSession }: Props)
   const {
     data,
     isLoading,
-    isError
+    isError,
+    error
   } = useFetchSearchUsersQuery
       (
         { query: debouncedSearch, page: 1, limit: 10 },
         { skip: !debouncedSearch.trim() || debouncedSearch.length < 2 }
       )
-
-  console.log('data:', data);
-
   useEffect(() => {
     if(isError || isLoading) return
     setSearchedUsers(data?.data.data || [])
@@ -59,6 +57,10 @@ const CreateChatModal = ({ visible, onClose, onCreateChat, userSession }: Props)
 
 
   const toggleUser = (user: any) => {
+    console.log('clieckted toggle user : ', toggleUser);
+    
+    console.log('item : ', user);
+    
     const exists = selectedUsers.find(u => u._id === user._id)
 
     if (exists) {
@@ -68,6 +70,9 @@ const CreateChatModal = ({ visible, onClose, onCreateChat, userSession }: Props)
     }
   }
 
+  console.log('selected users : ', selectedUsers);
+
+  
   return (
     <Modal animationType="slide" transparent visible={visible}>
       <View className="flex-1 bg-black mt-20 px-5">
