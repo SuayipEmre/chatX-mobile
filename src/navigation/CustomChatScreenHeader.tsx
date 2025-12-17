@@ -14,14 +14,20 @@ type Props = {
   route: RouteProp<MainNavigatorStackParamList, "ChatScreen">
   isGroupChat: boolean,
   chatId: string,
-  avatarUrl?: string
+  avatarUrl?: string,
+  groupId?:string
 }
-const CustomChatScreenHeader: React.FC<Props> = ({ route, navigation, chatId, isGroupChat, avatarUrl }) => {
-  console.log('chat id : ', chatId);
-  console.log('is group chat : ', isGroupChat);
+const CustomChatScreenHeader: React.FC<Props> = ({
+  route,
+  navigation,
+  chatId,
+  isGroupChat,
+  avatarUrl,
+  groupId
+}) => {
 
-  console.log('avatarUrl : ', avatarUrl);
-
+  console.log('groupId in header :', groupId);
+  
   return (
     <SafeAreaView
       edges={['top']}
@@ -38,7 +44,7 @@ const CustomChatScreenHeader: React.FC<Props> = ({ route, navigation, chatId, is
           color="white"
           onPress={() => navigation.goBack()} />
 
-        <View className='flex flex-row gap-5 items-start '>
+        <View className={`flex flex-row gap-5 items-start ${isGroupChat && 'items-center'}`}>
           <View className='border border-white rounded-full w-16 h-16'>
             {
               !isGroupChat && avatarUrl && <Image
@@ -51,11 +57,11 @@ const CustomChatScreenHeader: React.FC<Props> = ({ route, navigation, chatId, is
 
           </View>
 
-          <View className='gap-2 '>
-            <Text className=' text-white text-xl font-bold'>
+          <View className={`gap-2`}>
+            <Text className={`text-white text-xl font-bold`}>
               {route.params?.otherUserName?.toUpperCase() || "Chat"}
             </Text>
-            <Text className='text-gray-200 text-sm font-semibold'>Last view 00:00</Text>
+            {!isGroupChat && <Text className='text-gray-200 text-sm font-semibold'>Last view 00:00</Text>}
           </View>
 
         </View>
@@ -64,7 +70,11 @@ const CustomChatScreenHeader: React.FC<Props> = ({ route, navigation, chatId, is
 
       {
         isGroupChat && <View className=''>
-          <Entypo name="dots-three-vertical" size={24} color="white" />
+          <Entypo name="dots-three-vertical" size={24} color="white" onPress={
+            () => navigation.navigate('GroupDetailScreen', {
+              groupId: groupId || ''
+            })
+            } />
         </View>
       }
       <Text />

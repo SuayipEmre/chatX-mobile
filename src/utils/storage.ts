@@ -21,9 +21,7 @@ export const clearUserSessionFromStorage = async () => {
   await AsyncStorage.removeItem(SESSION_KEY);
 };
 
-/** 
- * Access Token helper (axios'ın istediği)
- */
+
 export const getAccessToken = async () => {
   const session = await getUserSessionFromStorage();
   return session?.accessToken ?? null;
@@ -34,6 +32,8 @@ export const setAccessTokenToStorage = async (token: string) => {
   if (!session) return;
 
   const updated = { ...session, accessToken: token };
+  console.log('Updated session with new token :', updated);
+  
   await setUserSessionToStorage(updated);
 };
 

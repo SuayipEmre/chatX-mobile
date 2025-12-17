@@ -1,17 +1,26 @@
 
 export type AuthNavigatorStackParamList = {
-    LoginScreen : undefined,
-    RegisterScreen : undefined
+    LoginScreen: undefined,
+    RegisterScreen: undefined
 }
 
 export type MainNavigatorStackParamList = {
-    HomeScreen : undefined,
-    ChatScreen : { chatId: string, otherUserName?:string, isGroupChat:boolean, avatarUrl?:string }
-    
+    HomeScreen: undefined,
+    ChatScreen: {
+        chatId: string,
+        otherUserName?: string,
+        isGroupChat: boolean,
+        avatarUrl?: string,
+        groupId?: string
+    },
+    GroupDetailScreen:{
+        groupId: string
+    }
+
 }
 
 export type ProfileNavigatorStackParamList = {
-    ProfileScreen : undefined,
-    EditProfileScreen : undefined
+    ProfileScreen: undefined,
+    EditProfileScreen: undefined
 
 }

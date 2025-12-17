@@ -4,7 +4,7 @@ let socket: Socket | null = null;
 
 export const getSocket = (userId: string) => {
   if (!socket) {
-    console.log("🔌 Creating NEW socket with userId:", userId);
+    console.log("Creating NEW socket with userId:", userId);
 
     socket = io(
       process.env.EXPO_PUBLIC_API_URL!.replace("/api", ""),

@@ -6,7 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { AuthNavigatorStackParamList, MainNavigatorStackParamList, ProfileNavigatorStackParamList } from './types'
 import AuthenticationStack from './AuthenticationStack'
 import { useUserSession } from '../store/feature/user/hooks'
-import { getUserSessionFromStorage } from '../utils/storage'
+import { getAccessToken, getUserSessionFromStorage } from '../utils/storage'
 import { setUserSession } from '../store/feature/user/actions'
 import MainNavigator from './MainStack'
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -30,18 +30,21 @@ const Stack = createNativeStackNavigator<NativeStackNavigatorParamList>()
 const RootNavigator = () => {
     const user = useUserSession()
 
+
     useEffect(() => {
         const getUser = async () => {
             const user = await getUserSessionFromStorage()
-            console.log('on root : ', user);
-            
+            const accessToken = await getAccessToken()
+            console.log('accessToken :', accessToken);
+            console.log('USER ON THE ROOT : ', user);
+
             setUserSession(user ?? null)
         }
         getUser()
     }, [])
 
     console.log('USER : user', user);
-    
+
     if (!user) return <NavigationContainer>
         <Stack.Navigator>
             <Stack.Screen
@@ -50,6 +53,7 @@ const RootNavigator = () => {
                 options={{ headerShown: false }} />
         </Stack.Navigator>
     </NavigationContainer>
+    
     return <NavigationContainer>
         <Tab.Navigator
             screenOptions={{
@@ -69,15 +73,15 @@ const RootNavigator = () => {
                     tabBarIcon: ({ color }) => <AntDesign
                         name="wechat-work"
                         size={24} color={color} />,
-                
-                    tabBarLabel:'Chats',
+
+                    tabBarLabel: 'Chats',
                 }}
             />
 
             <Tab.Screen name='ProfileNavigator' component={ProfileNavigator} options={{
                 tabBarIcon: ({ color }) => <Feather name="user" size={24} color={color} />,
                 headerShown: false,
-                tabBarLabel : 'Profile'
+                tabBarLabel: 'Profile'
             }} />
         </Tab.Navigator>
     </NavigationContainer>

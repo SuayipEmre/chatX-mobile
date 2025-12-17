@@ -1,7 +1,7 @@
 import { Text, View, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, Alert, Image } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { useRoute } from '@react-navigation/native'
-import {  useFetchMessagesByChatIdQuery, useSendMessageMutation } from '../service/message.service'
+import { useFetchMessagesByChatIdQuery, useSendMessageMutation } from '../service/message.service'
 import { IMessage } from '../types/Message'
 import { useUserSession } from '../store/feature/user/hooks'
 import { getSocket } from '../socket'
@@ -10,10 +10,21 @@ import UserDefaultIcon from '../components/UserDefaultIcon'
 const ChatScreen = () => {
     const user = useUserSession()
     const route = useRoute()
-    const { chatId, isGroupChat} = route.params as any
-    const { data : messageData,isLoading, isError , error} = useFetchMessagesByChatIdQuery(chatId)
+    const { chatId, isGroupChat, groupId } = route.params as any
+
+    const {
+        data: messageData,
+        isLoading,
+        isError,
+        error
+    } = useFetchMessagesByChatIdQuery(chatId)
+
+ 
+
+
+       
     
-    const[sendMessage] = useSendMessageMutation()
+    const [sendMessage] = useSendMessageMutation()
 
     const [messages, setMessages] = useState<IMessage[]>([])
     const [content, setContent] = useState("")
@@ -34,8 +45,8 @@ const ChatScreen = () => {
     }, []);
 
     useEffect(() => {
-        if(isLoading || isError) return;
-        setMessages(messageData.data || [])
+        if (isLoading || isError) return;
+        setMessages(messageData?.data || [])
     }, [chatId, isLoading, isError])
 
     useEffect(() => {
@@ -59,7 +70,7 @@ const ChatScreen = () => {
         try {
             if (!content.trim()) return
 
-            const newMessage = await sendMessage({chatId, content}).unwrap();
+            const newMessage = await sendMessage({ chatId, content }).unwrap();
 
             setContent("")
             setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50)

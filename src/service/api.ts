@@ -1,6 +1,7 @@
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { getAccessToken, setAccessTokenToStorage, clearTokens } from '../utils/storage';
+import { setUserSession } from '../store/feature/user/actions';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -9,7 +10,8 @@ const rawBaseQuery = fetchBaseQuery({
   credentials: "include",
   prepareHeaders: async (headers) => {
     const token = await getAccessToken();
-
+    console.log('Using token in request headers :', token);
+    
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }
@@ -40,6 +42,14 @@ export const chatxBaseQuery: BaseQueryFn<
 > = async (args, api, extraOptions) => {
   let result = await rawBaseQuery(args, api, extraOptions);
 
+  if (result.error) {
+    console.log('API ERROR:', {
+      status: result.error.status,
+      data: result.error.data,
+      originalArgs: args,
+    });
+  }
+  
   if (result.error && result.error.status === 401) {
     if (!isRefreshing) {
       isRefreshing = true;
@@ -52,8 +62,10 @@ export const chatxBaseQuery: BaseQueryFn<
         );
 
         if (refreshResult.data) {
+          console.log('Token refreshed', refreshResult);
+          
           const newToken = (refreshResult.data as any).data.accessToken;
-
+          
           await setAccessTokenToStorage(newToken);
 
           processQueue(null, newToken);

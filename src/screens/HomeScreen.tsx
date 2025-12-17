@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   FlatList,
   Alert,
+  Image,
 } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useCreateChatMutation, useCreateGroupChatMutation, useFetchChatsQuery } from '../service/chat.service'
@@ -18,22 +19,25 @@ import { MainNavigatorStackParamList } from '../navigation/types'
 import CreateChatModal from '../components/SearchUserModal'
 import { useUserSession } from '../store/feature/user/hooks'
 import { getSocket } from '../socket'
-import UserDefaultIcon from '../components/UserDefaultIcon'
-
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Avatar from '../components/Avatar'
 const HomeScreen = () => {
   const [search, setSearch] = useState('')
   const [isModalVisible, setIsModalVisible] = useState(false)
 
   const userSession = useUserSession()
 
-  const[createChat] = useCreateChatMutation()
-  const[createGroupChat] = useCreateGroupChatMutation()
-  const{data : chatData, isLoading} = useFetchChatsQuery({})
+  const [createChat] = useCreateChatMutation()
+  const [createGroupChat] = useCreateGroupChatMutation()
+  const { data: chatData, isLoading } = useFetchChatsQuery({})
 
 
-  
+
   const navigation = useNavigation<NavigationProp<MainNavigatorStackParamList>>()
 
+
+  console.log('chat data : ', chatData);
+  
 
 
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
@@ -46,7 +50,7 @@ const HomeScreen = () => {
     });
 
     socket.on("user_offline", (userId: string) => {
-      setOnlineUsers((prev) => prev.filter((id) => id !== userId));
+      setOnlineUsers((prev) => prev?.filter((id) => id !== userId));
     });
 
     return () => {
@@ -58,23 +62,19 @@ const HomeScreen = () => {
 
 
   const filtered = () => {
-    return chatData?.data.filter((chat : IChat) => {
+    return chatData?.data?.filter((chat: IChat) => {
       if (chat.isGroupChat) return chat.chatName?.toLowerCase().includes(search.toLowerCase());
       return chat?.otherUser?.username?.toLowerCase().includes(search.toLowerCase())
     })
 
   }
 
+
   const handleCreateMultipleChat = async (
     users: { _id: string; username: string, avatarUrl?: string }[],
     groupName?: string
   ) => {
 
-
-    console.log('users: ', users);
-    
-
-    
     try {
       if (users.length === 1) {
         const chatData = await createChat(users[0]._id).unwrap()
@@ -83,8 +83,9 @@ const HomeScreen = () => {
         return navigation.navigate('ChatScreen', {
           chatId: chatData.data._id,
           otherUserName: users[0].username,
-          isGroupChat : false,
-          avatarUrl : users[0].avatarUrl
+          isGroupChat: false,
+          avatarUrl: users[0].avatarUrl,
+
         })
       }
 
@@ -104,9 +105,10 @@ const HomeScreen = () => {
 
       navigation.navigate('ChatScreen', {
         chatId: groupData.data.data.chat._id,
-        otherUserName:  groupData.data.data.group.groupName,
+        otherUserName: groupData.data.data.group.groupName,
         isGroupChat: true,
-        avatarUrl : undefined
+        avatarUrl: undefined,
+        groupId: groupData.data.data.group._id
       })
     } catch (error) {
       console.log('error creating chat/group:', error);
@@ -147,8 +149,8 @@ const HomeScreen = () => {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
             const user = item.otherUser
-            console.log('users : ', user);
-            
+            console.log('item : ', item);
+
             return (
               <TouchableOpacity
                 className="flex-row items-center p-4 rounded-2xl mb-2 bg-neutral-900 border border-neutral-800"
@@ -156,20 +158,34 @@ const HomeScreen = () => {
                   navigation.navigate('ChatScreen', {
                     chatId: item._id,
                     otherUserName: user?.username,
-                    isGroupChat : item.isGroupChat,
-                    avatarUrl : user?.avatar
+                    isGroupChat: item.isGroupChat,
+                    avatarUrl: user?.avatar,
+                    groupId: item.isGroupChat ? item.groupId : undefined,
                   })
                 }
               >
-             <UserDefaultIcon />
+                <Image
+                source={{uri : item?.otherUser?.avatar} }
+                className='w-12 h-12 rounded-full'
+                />
+                <Avatar
+                width={`w-12`}
+                height={`h-12`}
+                avatar={item?.otherUser?.avatar}
+                />
 
                 <View className="flex-1 ml-3">
                   <Text className="text-white text-[17px] font-semibold">
                     {item.isGroupChat ? item.chatName : user?.username}
                   </Text>
-                  <Text className="text-neutral-500 text-[14px]">
-                    click to start chatting
-                  </Text>
+                  
+                  <View className='flex-row items-center gap-2 mt-5'>
+                    <Ionicons name="checkmark-done-sharp" size={24} color="white" />
+                    <Text className="text-neutral-500 text-[14px]">
+                     {item.latestMessage ? item.latestMessage.content : 'No messages yet.'}
+                    </Text>
+                  </View>
+
                 </View>
               </TouchableOpacity>
             )

@@ -4,6 +4,7 @@ import AuthService from '../../service/auth.service'
 import ChatService from '../../service/chat.service'
 import MessageService from '../../service/message.service'
 import UserService from '../../service/user.service'
+import GroupService from '../../service/group.service'
 
 export const store = configureStore({
     reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
         [ChatService.reducerPath]: ChatService.reducer,
         [MessageService.reducerPath]: MessageService.reducer,
         [UserService.reducerPath]: UserService.reducer,
+        [GroupService.reducerPath]: GroupService.reducer,
 
     },
 
@@ -23,6 +25,7 @@ export const store = configureStore({
                 .concat(ChatService.middleware)
                 .concat(MessageService.middleware)
                 .concat(UserService.middleware)
+                .concat(GroupService.middleware)
         )
     }
 
