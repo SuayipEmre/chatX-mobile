@@ -6,6 +6,7 @@ const GroupService = createApi({
     reducerPath: 'GroupService',
 
     baseQuery: chatxBaseQuery,
+    tagTypes: ['Group'],
     endpoints: (builder) => ({
     
         getGroupDetails: builder.query({
@@ -14,13 +15,45 @@ const GroupService = createApi({
                     url: `/groups/details?id=${groupId}`,
                     method: 'GET',
                 }
-            }
+            },
+            providesTags : ['Group']
+        }),
+
+        removeFromGroup: builder.mutation({
+            query: ({ groupId, userId }: { groupId: string, userId: string }) => {
+                return {
+                    url: `/groups/remove-user`,
+                    method: 'POST',
+                    body: {
+                        groupId,
+                        userId
+                    }
+                }
+            },
+            invalidatesTags : ['Group']
+        }),
+
+        changeGroupAdmin : builder.mutation({
+            query : ({groupId, newAdminId}:{groupId:string, newAdminId:string})=>{
+                return {
+                    url: `/groups/change-admin`,
+                    method: 'PATCH',
+                    body: {
+                        groupId,
+                        newAdminId
+                    }
+                }
+            },
+            invalidatesTags : ['Group']
+
         })
 
     })
 })
 export const {
     useGetGroupDetailsQuery,
+    useRemoveFromGroupMutation,
+    useChangeGroupAdminMutation
 } = GroupService
 export default GroupService
 
