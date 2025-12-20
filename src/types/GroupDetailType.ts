@@ -3,14 +3,14 @@ export interface IGroupDetailType {
     _id: string,
     groupName: string,
     isGroupChat: boolean,
-    users: User[],
+    users: GroupUserDetail[],
     admin: Admin,
     avatar?: string,
     createdAt: string,
     updatedAt: string
 }
 
-type CommonUserFields = {
+export type CommonUserFields = {
     _id: string,
     username: string,
     email: string,
@@ -23,5 +23,5 @@ type Admin = CommonUserFields
 
 
 
-type User = CommonUserFields
+export type GroupUserDetail = CommonUserFields
 
