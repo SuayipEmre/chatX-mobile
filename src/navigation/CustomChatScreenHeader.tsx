@@ -37,6 +37,8 @@ const CustomChatScreenHeader: React.FC<Props> = ({
 
   console.log('groupId in header :', otherUserLastSeenAt);
 
+  console.log('isOnline :', isOnline);
+  
   console.log('is group chat :', isGroupChat);
   console.log('other user id :', otherUserId);
   
@@ -75,7 +77,7 @@ const CustomChatScreenHeader: React.FC<Props> = ({
               {route.params?.otherUserName?.toUpperCase() || "Chat"}
             </Text>
             {!isGroupChat && otherUserId && (
-              <Text className="text-red-500 text-sm font-semibold">
+              <Text className={`text-sm font-semibold ${isOnline ? 'text-green-400' : 'text-gray-200'}`}>
                 {isOnline
                   ? "online"
                   : formatLastSeen(otherUserLastSeenAt)}
