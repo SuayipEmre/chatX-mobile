@@ -14,7 +14,8 @@ export type CommonUserFields = {
     _id: string,
     username: string,
     email: string,
-    avatar?: string
+    avatar?: string,
+    lastSeenAt?: string | null
 }
 
 type Admin = CommonUserFields

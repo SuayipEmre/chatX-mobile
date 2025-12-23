@@ -7,6 +7,8 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import Entypo from '@expo/vector-icons/Entypo';
 import { StatusBar } from 'expo-status-bar'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSocketPresence } from '../providers/SocketProvider'
+import { formatLastSeen } from '../utils/formatLastSeen'
 
 
 type Props = {
@@ -15,18 +17,29 @@ type Props = {
   isGroupChat: boolean,
   chatId: string,
   avatarUrl?: string,
-  groupId?:string
+  groupId?: string
+  otherUserId?: string;
+  otherUserLastSeenAt?: string | null;
 }
 const CustomChatScreenHeader: React.FC<Props> = ({
   route,
   navigation,
-  chatId,
   isGroupChat,
   avatarUrl,
-  groupId
+  groupId,
+  otherUserId,
+  otherUserLastSeenAt
 }) => {
 
-  console.log('groupId in header :', groupId);
+  const { onlineUsers } = useSocketPresence();
+
+  const isOnline = otherUserId && onlineUsers.has(otherUserId);
+
+  console.log('groupId in header :', otherUserLastSeenAt);
+
+  console.log('is group chat :', isGroupChat);
+  console.log('other user id :', otherUserId);
+  
   
   return (
     <SafeAreaView
@@ -61,7 +74,13 @@ const CustomChatScreenHeader: React.FC<Props> = ({
             <Text className={`text-white text-xl font-bold`}>
               {route.params?.otherUserName?.toUpperCase() || "Chat"}
             </Text>
-            {!isGroupChat && <Text className='text-gray-200 text-sm font-semibold'>Last view 00:00</Text>}
+            {!isGroupChat && otherUserId && (
+              <Text className="text-red-500 text-sm font-semibold">
+                {isOnline
+                  ? "online"
+                  : formatLastSeen(otherUserLastSeenAt)}
+              </Text>
+            )}
           </View>
 
         </View>
@@ -74,7 +93,7 @@ const CustomChatScreenHeader: React.FC<Props> = ({
             () => navigation.navigate('GroupDetailScreen', {
               groupId: groupId || ''
             })
-            } />
+          } />
         </View>
       }
       <Text />

@@ -1,6 +1,6 @@
 import { Text, View, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, Alert, Image } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
-import { useRoute } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { useFetchMessagesByChatIdQuery, useSendMessageMutation } from '../service/message.service'
 import { IMessage } from '../types/Message'
 import { useUserSession } from '../store/feature/user/hooks'
@@ -12,6 +12,7 @@ const ChatScreen = () => {
     const route = useRoute()
     const { chatId, isGroupChat, groupId } = route.params as any
 
+    const navigation = useNavigation()
     const {
         data: messageData,
         isLoading,
@@ -20,10 +21,21 @@ const ChatScreen = () => {
     } = useFetchMessagesByChatIdQuery(chatId)
 
  
-
-
-       
-    
+    /* useEffect(() => {
+        if (!otherUser) return;
+      
+        navigation.setParams({
+          otherUserId: otherUser._id,
+          otherUserLastSeenAt: otherUser.lastSeenAt,
+          otherUserName: otherUser.username,
+        });
+      }, [
+        otherUser?._id,
+        otherUser?.lastSeenAt,
+        otherUser?.username,
+      ]);
+ */
+      
     const [sendMessage] = useSendMessageMutation()
 
     const [messages, setMessages] = useState<IMessage[]>([])
@@ -72,6 +84,8 @@ const ChatScreen = () => {
 
             const newMessage = await sendMessage({ chatId, content }).unwrap();
 
+            console.log('Sent message:', newMessage);
+            
             setContent("")
             setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50)
         } catch (error) {
@@ -99,7 +113,7 @@ const ChatScreen = () => {
                     /> : <UserDefaultIcon />)}
                     <View>
                         <View>
-                            {!isMine && <Text className='text-pink-500'>{item.sender.username}</Text>}
+                            {!isMine && isGroupChat  && <Text className='text-pink-500'>{item.sender.username}</Text>}
                             <Text className="text-white text-[15px]">{item.content}</Text>
                         </View>
                         <Text className="text-neutral-400 text-[10px] mt-1 text-right">

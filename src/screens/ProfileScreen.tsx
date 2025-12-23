@@ -9,6 +9,7 @@ import { useFetchUserProfileQuery } from "../service/user.service";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { ProfileNavigatorStackParamList } from "../navigation/types";
 import { useSendLogoutRequestMutation } from "../service/auth.service";
+import { disconnectSocket } from "../socket";
 
 const ProfileScreen = () => {
   const [logout] = useSendLogoutRequestMutation()
@@ -22,9 +23,16 @@ const ProfileScreen = () => {
   const handleLogout = async () => {
     try {
       const res = await logout().unwrap();
+  
       if (res?.statusCode === 200) {
+        // 🔥 1️⃣ SOCKET CLEANUP
+        disconnectSocket();
+  
+        // 🔥 2️⃣ REDUX STATE
         setUserSession(null);
-        clearUserSessionFromStorage()
+  
+        // 🔥 3️⃣ STORAGE
+        await clearUserSessionFromStorage();
       }
     } catch (error) {
       console.log("error : ", error);

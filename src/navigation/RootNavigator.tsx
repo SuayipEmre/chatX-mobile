@@ -12,6 +12,7 @@ import MainNavigator from './MainStack'
 import AntDesign from '@expo/vector-icons/AntDesign';
 import ProfileNavigator from './ProfileStack'
 import Feather from '@expo/vector-icons/Feather';
+import { SocketProvider } from '../providers/SocketProvider'
 type NativeStackNavigatorParamList = {
     AuthenticationNavigator: NavigatorScreenParams<AuthNavigatorStackParamList>;
 }
@@ -28,63 +29,68 @@ const Stack = createNativeStackNavigator<NativeStackNavigatorParamList>()
 
 
 const RootNavigator = () => {
-    const user = useUserSession()
-
-
+    const user = useUserSession();
+  
     useEffect(() => {
-        const getUser = async () => {
-            const user = await getUserSessionFromStorage()
-            const accessToken = await getAccessToken()
-            console.log('accessToken :', accessToken);
-            console.log('USER ON THE ROOT : ', user);
-
-            setUserSession(user ?? null)
-        }
-        getUser()
-    }, [])
-
-    console.log('USER : user', user);
-
-    if (!user) return <NavigationContainer>
-        <Stack.Navigator>
+      const getUser = async () => {
+        const storedUser = await getUserSessionFromStorage();
+        setUserSession(storedUser ?? null);
+      };
+  
+      getUser();
+    }, []);
+  
+    if (!user) {
+      return (
+        <NavigationContainer>
+          <Stack.Navigator>
             <Stack.Screen
-                name='AuthenticationNavigator'
-                component={AuthenticationStack}
-                options={{ headerShown: false }} />
-        </Stack.Navigator>
-    </NavigationContainer>
-    
-    return <NavigationContainer>
-        <Tab.Navigator
-            screenOptions={{
-                tabBarStyle: {
-                    backgroundColor: "black",
-                },
-                tabBarInactiveTintColor: '#ccc',
-                tabBarActiveTintColor: '#fff',
-
-            }}
-        >
-            <Tab.Screen
-                name='MainNavigator'
-                component={MainNavigator}
-                options={{
-                    headerShown: false,
-                    tabBarIcon: ({ color }) => <AntDesign
-                        name="wechat-work"
-                        size={24} color={color} />,
-
-                    tabBarLabel: 'Chats',
-                }}
+              name="AuthenticationNavigator"
+              component={AuthenticationStack}
+              options={{ headerShown: false }}
             />
-
-            <Tab.Screen name='ProfileNavigator' component={ProfileNavigator} options={{
-                tabBarIcon: ({ color }) => <Feather name="user" size={24} color={color} />,
+          </Stack.Navigator>
+        </NavigationContainer>
+      );
+    }
+  
+    return (
+      <SocketProvider>
+        <NavigationContainer>
+          <Tab.Navigator
+            screenOptions={{
+              tabBarStyle: { backgroundColor: "black" },
+              tabBarInactiveTintColor: "#ccc",
+              tabBarActiveTintColor: "#fff",
+            }}
+          >
+            <Tab.Screen
+              name="MainNavigator"
+              component={MainNavigator}
+              options={{
                 headerShown: false,
-                tabBarLabel: 'Profile'
-            }} />
-        </Tab.Navigator>
-    </NavigationContainer>
-}
-
+                tabBarIcon: ({ color }) => (
+                  <AntDesign name="wechat-work" size={24} color={color} />
+                ),
+                tabBarLabel: "Chats",
+              }}
+            />
+  
+            <Tab.Screen
+              name="ProfileNavigator"
+              component={ProfileNavigator}
+              options={{
+                headerShown: false,
+                tabBarIcon: ({ color }) => (
+                  <Feather name="user" size={24} color={color} />
+                ),
+                tabBarLabel: "Profile",
+              }}
+            />
+          </Tab.Navigator>
+        </NavigationContainer>
+      </SocketProvider>
+    );
+  };
+  
 export default RootNavigator

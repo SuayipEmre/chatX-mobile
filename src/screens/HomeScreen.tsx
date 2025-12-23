@@ -59,6 +59,7 @@ const HomeScreen = () => {
     };
   }, [userSession]);
 
+console.log('chatData : ', chatData);
 
 
   const filtered = () => {
@@ -79,13 +80,14 @@ const HomeScreen = () => {
       if (users.length === 1) {
         const chatData = await createChat(users[0]._id).unwrap()
         setIsModalVisible(false)
-
+        console.log('chatDataajfknasjnfjaksnfjkn : ', chatData);
+        
         return navigation.navigate('ChatScreen', {
           chatId: chatData.data._id,
           otherUserName: users[0].username,
           isGroupChat: false,
           avatarUrl: users[0].avatarUrl,
-
+          
         })
       }
 
@@ -108,7 +110,8 @@ const HomeScreen = () => {
         otherUserName: groupData.data.data.group.groupName,
         isGroupChat: true,
         avatarUrl: undefined,
-        groupId: groupData.data.data.group._id
+        groupId: groupData.data.data.group._id,
+        
       })
     } catch (error) {
       console.log('error creating chat/group:', error);
@@ -149,7 +152,6 @@ const HomeScreen = () => {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
             const user = item.otherUser
-            console.log('item : ', item);
 
             return (
               <TouchableOpacity
@@ -161,6 +163,7 @@ const HomeScreen = () => {
                     isGroupChat: item.isGroupChat,
                     avatarUrl: user?.avatar,
                     groupId: item.isGroupChat ? item.groupId : undefined,
+                    otherUser : user,
                   })
                 }
               >

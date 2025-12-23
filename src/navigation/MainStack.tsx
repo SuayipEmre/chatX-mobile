@@ -22,26 +22,33 @@ const MainNavigator = () => {
       }} />
 
       <Stack.Screen name='ChatScreen' component={ChatScreen}
-        options={({ route, navigation }) => (
-          {
-
-            header: () => (<CustomChatScreenHeader
-              route={route}
-              navigation={navigation}
-              isGroupChat={route.params.isGroupChat}
-              chatId={route.params.chatId}
-              avatarUrl={route.params.avatarUrl}
-              groupId={route.params.groupId}
-            />
-
-            ),
-
-            headerStyle: {
-              backgroundColor: '#000',
-            },
-            headerTintColor: '#fff'
-          }
-        )} />
+        options={({ route, navigation }) => {
+          console.log('route params in MainNavigator :', route.params);
+          
+          return (
+            {
+  
+  
+              header: () => (<CustomChatScreenHeader
+                route={route}
+                navigation={navigation}
+                isGroupChat={route.params.isGroupChat}
+                chatId={route.params.chatId}
+                avatarUrl={route.params.avatarUrl}
+                groupId={route.params.groupId}
+                otherUserLastSeenAt={route.params.otherUser?.lastSeenAt}
+                otherUserId={route.params.otherUser?._id}
+              />
+  
+              ),
+  
+              headerStyle: {
+                backgroundColor: '#000',
+              },
+              headerTintColor: '#fff'
+            }
+          )
+        }} />
 
       <Stack.Screen
         name='GroupDetailScreen'

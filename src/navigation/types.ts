@@ -1,3 +1,4 @@
+import { CommonUserFields } from "../types/GroupDetailType"
 
 export type AuthNavigatorStackParamList = {
     LoginScreen: undefined,
@@ -11,7 +12,8 @@ export type MainNavigatorStackParamList = {
         otherUserName?: string,
         isGroupChat: boolean,
         avatarUrl?: string,
-        groupId?: string
+        groupId?: string,
+        otherUser?: CommonUserFields
     },
     GroupDetailScreen:{
         groupId: string
@@ -22,5 +24,4 @@ export type MainNavigatorStackParamList = {
 export type ProfileNavigatorStackParamList = {
     ProfileScreen: undefined,
     EditProfileScreen: undefined
-
 }
