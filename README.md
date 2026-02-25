@@ -35,8 +35,7 @@ Please ensure you have cloned, configured, and started the backend repository on
 Create a `.env` file in the root directory and add the single required environment variable to connect the app to your backend API.
 
 ```env
-# Your backend API URL (e.g., http://localhost:8080 or https://your-production-url.com)
-EXPO_PUBLIC_API_URL=http://localhost:8080
+EXPO_PUBLIC_API_URL=http://localhost:8080/api
 ```
 
 *Note: When testing on a physical Android device against a local backend, use your computer's local IP address instead of `localhost` (e.g., `http://192.168.1.X:8080`).*
