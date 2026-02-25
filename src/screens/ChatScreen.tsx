@@ -1,11 +1,12 @@
 import { Text, View, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, Alert, Image } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigation, useRoute } from '@react-navigation/native'
-import { useFetchMessagesByChatIdQuery, useSendMessageMutation } from '../service/message.service'
+import { useFetchMessagesByChatIdQuery, useSendMessageMutation, useMarkAsReadMutation } from '../service/message.service'
 import { IMessage } from '../types/Message'
 import { useUserSession } from '../store/feature/user/hooks'
 import { getSocket } from '../socket'
 import UserDefaultIcon from '../components/UserDefaultIcon'
+import Ionicons from '@expo/vector-icons/Ionicons'
 
 const ChatScreen = () => {
     const user = useUserSession()
@@ -20,7 +21,7 @@ const ChatScreen = () => {
         error
     } = useFetchMessagesByChatIdQuery(chatId)
 
- 
+
     /* useEffect(() => {
         if (!otherUser) return;
       
@@ -35,8 +36,9 @@ const ChatScreen = () => {
         otherUser?.username,
       ]);
  */
-      
+
     const [sendMessage] = useSendMessageMutation()
+    const [markAsRead] = useMarkAsReadMutation()
 
     const [messages, setMessages] = useState<IMessage[]>([])
     const [content, setContent] = useState("")
@@ -59,7 +61,12 @@ const ChatScreen = () => {
     useEffect(() => {
         if (isLoading || isError) return;
         setMessages(messageData?.data || [])
-    }, [chatId, isLoading, isError])
+
+        // Mark chat as read
+        if (chatId) {
+            markAsRead({ chatId })
+        }
+    }, [chatId, isLoading, isError, messageData])
 
     useEffect(() => {
         if (!currentUserId) return;
@@ -85,7 +92,7 @@ const ChatScreen = () => {
             const newMessage = await sendMessage({ chatId, content }).unwrap();
 
             console.log('Sent message:', newMessage);
-            
+
             setContent("")
             setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50)
         } catch (error) {
@@ -113,14 +120,23 @@ const ChatScreen = () => {
                     /> : <UserDefaultIcon />)}
                     <View>
                         <View>
-                            {!isMine && isGroupChat  && <Text className='text-pink-500'>{item.sender.username}</Text>}
+                            {!isMine && isGroupChat && <Text className='text-pink-500'>{item.sender.username}</Text>}
                             <Text className="text-white text-[15px]">{item.content}</Text>
                         </View>
-                        <Text className="text-neutral-400 text-[10px] mt-1 text-right">
-                            {new Date(item.createdAt).toLocaleTimeString("tr-TR", {
-                                hour: "2-digit", minute: "2-digit"
-                            })}
-                        </Text>
+                        <View className="flex-row items-center justify-end gap-1 mt-1">
+                            <Text className="text-neutral-400 text-[10px]">
+                                {new Date(item.createdAt).toLocaleTimeString("tr-TR", {
+                                    hour: "2-digit", minute: "2-digit"
+                                })}
+                            </Text>
+                            {isMine && (
+                                <Ionicons
+                                    name="checkmark-done-sharp"
+                                    size={14}
+                                    color={item.readBy?.length > 1 ? "#3b82f6" : "#9ca3af"}
+                                />
+                            )}
+                        </View>
                     </View>
 
 

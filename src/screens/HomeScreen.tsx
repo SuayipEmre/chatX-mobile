@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useCreateChatMutation, useCreateGroupChatMutation, useFetchChatsQuery } from '../service/chat.service'
+import { useFetchAllUsersQuery } from '../service/user.service'
 import { IChat } from '../types/Chats'
 import EvilIcons from '@expo/vector-icons/EvilIcons'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -30,14 +31,14 @@ const HomeScreen = () => {
   const [createChat] = useCreateChatMutation()
   const [createGroupChat] = useCreateGroupChatMutation()
   const { data: chatData, isLoading } = useFetchChatsQuery({})
-
+  const { data: allUsersData, isLoading: isLoadingUsers } = useFetchAllUsersQuery({})
 
 
   const navigation = useNavigation<NavigationProp<MainNavigatorStackParamList>>()
 
 
   console.log('chat data : ', chatData);
-  
+
 
 
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
@@ -59,7 +60,7 @@ const HomeScreen = () => {
     };
   }, [userSession]);
 
-console.log('chatData : ', chatData);
+  console.log('chatData : ', chatData);
 
 
   const filtered = () => {
@@ -78,16 +79,14 @@ console.log('chatData : ', chatData);
 
     try {
       if (users.length === 1) {
-        const chatData = await createChat(users[0]._id).unwrap()
+        const chatResult = await createChat(users[0]._id).unwrap()
         setIsModalVisible(false)
-        console.log('chatDataajfknasjnfjaksnfjkn : ', chatData);
-        
+
         return navigation.navigate('ChatScreen', {
-          chatId: chatData.data._id,
+          chatId: chatResult.data._id,
           otherUserName: users[0].username,
           isGroupChat: false,
           avatarUrl: users[0].avatarUrl,
-          
         })
       }
 
@@ -101,23 +100,71 @@ console.log('chatData : ', chatData);
         users: users.map(u => u._id),
         groupName: groupName || 'New Group',
         adminId: userSession?.user._id
-      })
+      }).unwrap()
 
       setIsModalVisible(false)
 
       navigation.navigate('ChatScreen', {
-        chatId: groupData.data.data.chat._id,
-        otherUserName: groupData.data.data.group.groupName,
+        chatId: groupData.data.chat._id,
+        otherUserName: groupData.data.group.groupName,
         isGroupChat: true,
         avatarUrl: undefined,
-        groupId: groupData.data.data.group._id,
-        
+        groupId: groupData.data.group._id,
       })
     } catch (error) {
       console.log('error creating chat/group:', error);
       Alert.alert('Error', 'Chat oluşturulamadı')
     }
   }
+
+  // ✅ SUGGESTED USERS RENDERER
+  const renderSuggestedUsers = () => {
+    if (isLoadingUsers || !allUsersData?.data?.length) return null;
+
+    // Filter out current user from suggestions
+    const suggestedUsers = allUsersData.data.filter(
+      (u: any) => u._id !== userSession?.user._id
+    );
+
+    if (!suggestedUsers.length) return null;
+
+    return (
+      <View className="mb-6">
+        <Text className="text-neutral-400 text-sm font-semibold mb-3 tracking-wider uppercase">
+          Suggested
+        </Text>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={suggestedUsers}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => handleCreateMultipleChat([item])}
+              className="items-center mr-4 w-[72px]"
+            >
+              <View className="w-16 h-16 rounded-full overflow-hidden mb-2 border-2 border-primary">
+                {item.avatar ? (
+                  <Image source={{ uri: item.avatar }} className="w-full h-full" />
+                ) : (
+                  <View className="w-full h-full bg-neutral-800 items-center justify-center">
+                    <FontAwesome6 name="user" size={24} color="#9ca3af" />
+                  </View>
+                )}
+                {/* Online indicator */}
+                {onlineUsers.includes(item._id) && (
+                  <View className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-500 border-2 border-black" />
+                )}
+              </View>
+              <Text className="text-white text-xs text-center" numberOfLines={1}>
+                {item.username}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-black" edges={['top']}>
@@ -142,7 +189,7 @@ console.log('chatData : ', chatData);
 
         {isLoading && (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="white" />
+            <ActivityIndicator size="large" color="#FF5B04" />
           </View>
         )}
 
@@ -150,6 +197,7 @@ console.log('chatData : ', chatData);
           data={filtered()}
           keyExtractor={item => item._id}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={renderSuggestedUsers}
           renderItem={({ item }) => {
             const user = item.otherUser
 
@@ -159,33 +207,40 @@ console.log('chatData : ', chatData);
                 onPress={() =>
                   navigation.navigate('ChatScreen', {
                     chatId: item._id,
-                    otherUserName: user?.username,
+                    otherUserName: item.isGroupChat ? item.chatName : user?.username,
                     isGroupChat: item.isGroupChat,
                     avatarUrl: user?.avatar,
                     groupId: item.isGroupChat ? item.groupId : undefined,
-                    otherUser : user,
+                    otherUser: user,
                   })
                 }
               >
-                <Image
-                source={{uri : item?.otherUser?.avatar} }
-                className='w-12 h-12 rounded-full'
-                />
-                <Avatar
-                width={`w-12`}
-                height={`h-12`}
-                avatar={item?.otherUser?.avatar}
-                />
+                <View className="relative">
+                  {item.isGroupChat ? (
+                    <View className="w-12 h-12 rounded-full bg-neutral-800 items-center justify-center">
+                      <FontAwesome6 name="users" size={20} color="white" />
+                    </View>
+                  ) : (
+                    <Image
+                      source={{ uri: user?.avatar || 'https://via.placeholder.com/150' }}
+                      className='w-12 h-12 rounded-full'
+                    />
+                  )}
+                  {/* Online Indicator */}
+                  {!item.isGroupChat && user && onlineUsers.includes(user._id) && (
+                    <View className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-neutral-900" />
+                  )}
+                </View>
 
-                <View className="flex-1 ml-3">
+                <View className="flex-1 ml-4 justify-center">
                   <Text className="text-white text-[17px] font-semibold">
                     {item.isGroupChat ? item.chatName : user?.username}
                   </Text>
-                  
-                  <View className='flex-row items-center gap-2 mt-5'>
-                    <Ionicons name="checkmark-done-sharp" size={24} color="white" />
-                    <Text className="text-neutral-500 text-[14px]">
-                     {item.latestMessage ? item.latestMessage.content : 'No messages yet.'}
+
+                  <View className='flex-row items-center gap-2 mt-1'>
+                    <Ionicons name="checkmark-done-sharp" size={16} color="gray" />
+                    <Text className="text-neutral-400 text-[14px]" numberOfLines={1}>
+                      {item.latestMessage ? item.latestMessage.content : 'No messages yet.'}
                     </Text>
                   </View>
 
@@ -196,13 +251,13 @@ console.log('chatData : ', chatData);
         />
 
         {/* ✅ ADD BUTTON */}
-        <FontAwesome6
-          name="add"
-          size={24}
-          color="blue"
-          className="absolute right-10 bottom-10 border border-gray-500 p-5 rounded-full"
+        <TouchableOpacity
+          className="absolute right-6 bottom-6 w-14 h-14 bg-primary rounded-full items-center justify-center shadow-lg"
+          style={{ backgroundColor: '#FF5B04', shadowColor: '#FF5B04', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 }}
           onPress={() => setIsModalVisible(true)}
-        />
+        >
+          <FontAwesome6 name="plus" size={20} color="white" />
+        </TouchableOpacity>
 
         {/* ✅ MODAL */}
         <CreateChatModal

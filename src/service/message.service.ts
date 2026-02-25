@@ -5,10 +5,11 @@ const MessageService = createApi({
   reducerPath: 'MessageService',
 
   baseQuery: chatxBaseQuery,
+  tagTypes: ['Message', 'Chat'],
   endpoints: (builder) => ({
 
     fetchMessagesByChatId: builder.query({
-      query: (chatId:string) => {
+      query: (chatId: string) => {
         return {
           url: `/messages/${chatId}`,
           method: 'GET',
@@ -17,7 +18,7 @@ const MessageService = createApi({
     }),
 
     sendMessage: builder.mutation({
-      query: ({chatId, content} : {chatId : string, content:  string} ) => {
+      query: ({ chatId, content }: { chatId: string, content: string }) => {
         return {
           url: '/messages',
           method: 'POST',
@@ -27,13 +28,31 @@ const MessageService = createApi({
           }
         }
       },
+      invalidatesTags: (result, error, { chatId }) => [{ type: 'Message' as const, id: chatId }],
     }),
 
-  
+    markAsRead: builder.mutation({
+      query: ({ chatId }: { chatId: string }) => {
+        return {
+          url: '/messages/read',
+          method: 'POST',
+          body: {
+            chatId,
+          }
+        }
+      },
+      invalidatesTags: (result, error, { chatId }) => [
+        { type: 'Message' as const, id: chatId },
+        { type: 'Chat' as const, id: 'LIST' }
+      ],
+    }),
+
+
   })
 })
 export const {
-    useFetchMessagesByChatIdQuery,
-    useSendMessageMutation,
+  useFetchMessagesByChatIdQuery,
+  useSendMessageMutation,
+  useMarkAsReadMutation,
 } = MessageService
 export default MessageService

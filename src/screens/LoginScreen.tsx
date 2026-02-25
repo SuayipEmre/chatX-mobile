@@ -1,36 +1,65 @@
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import AuthFormInput from "../components/AuthFormInput";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import GradientButton from "../components/GradientButton";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { AuthNavigatorStackParamList } from "../navigation/types";
 import Logo from "../components/Logo";
 import { useSendLoginRequestMutation } from "../service/auth.service";
 import { setUserSession } from "../store/feature/user/actions";
-import { setUserSessionToStorage } from "../utils/storage";
+import { useUserSession } from "../store/feature/user/hooks";
+import { getTokens, setTokens, setUserSessionToStorage } from "../utils/cleanStorage";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const userSession = useUserSession();  
 
   const navigation = useNavigation<NavigationProp<AuthNavigatorStackParamList>>()
 
+useEffect(() => {
+  
+  const getData = async () => {
+    const tokens = await getTokens()
+
+    console.log('----------------');
+    console.log('after logout current data');
+    console.log('refresh : ', tokens.refreshToken);
+    console.log('access : ', tokens.accessToken);
+    console.log('userSession : ', userSession);
+    console.log('----------------');
+    
+  }
+
+  getData()
+
+},[userSession])
+
+
   const [login, { isLoading, error }] = useSendLoginRequestMutation();
+
+
+  
+  
+  
 
   const handleLogin = async () => {
     if (!email.includes('@') || password.length < 5) return console.log('cannot login')
 
     try {
       const loginData = await login({email, password}).unwrap();
-
       console.log('loginData : ', loginData);
-      
+
       if (loginData) {
         setUserSession(loginData.data)
         setUserSessionToStorage(loginData.data)
+        setTokens(loginData.data.tokens)
       }
 
+      
+
     } catch (error) {
+      Alert.alert('Login Failed', 'Please check your credentials and try again.');
       console.log('errorasd : ', error);
 
     }

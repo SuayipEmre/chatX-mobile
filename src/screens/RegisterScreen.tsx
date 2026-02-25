@@ -25,14 +25,14 @@ const RegisterScreen = () => {
       return
     }
     const data = await register({email, password, username}).unwrap()
-    console.log('register data: ', data);
-    
-    console.log('status: ', data.status);
+  
     
     if(String(data.status) != 'success') {
      return Alert.alert("ChatX","Failed to register. Please try again.")
     }
+
     Alert.alert("ChatX","Registered successfully")
+    navigation.navigate('LoginScreen')
   }
   return (
     <View className='flex-1 bg-black px-7 flex justify-center'>

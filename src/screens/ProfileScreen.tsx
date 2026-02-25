@@ -3,13 +3,13 @@ import React from "react";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import { setUserSession } from "../store/feature/user/actions";
-import { clearUserSessionFromStorage } from "../utils/storage";
+import { clearUserSession, } from "../store/feature/user/actions";
 import { useFetchUserProfileQuery } from "../service/user.service";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { ProfileNavigatorStackParamList } from "../navigation/types";
 import { useSendLogoutRequestMutation } from "../service/auth.service";
 import { disconnectSocket } from "../socket";
+import { clearTokens, clearUserSessionFromStorage } from "../utils/cleanStorage";
 
 const ProfileScreen = () => {
   const [logout] = useSendLogoutRequestMutation()
@@ -17,25 +17,27 @@ const ProfileScreen = () => {
 
   const { data: user, error } = useFetchUserProfileQuery({})
 
-  console.log('erroasdasfr : ', error);
   
+  /*
+  remove - sesion both state and storage 
+  remove - tokens
+  
+  */
 
   const handleLogout = async () => {
     try {
-      const res = await logout().unwrap();
+      const res = await logout({}).unwrap();
   
       if (res?.statusCode === 200) {
-        // 🔥 1️⃣ SOCKET CLEANUP
+        await clearTokens()
+
         disconnectSocket();
   
-        // 🔥 2️⃣ REDUX STATE
-        setUserSession(null);
+        clearUserSession();
   
-        // 🔥 3️⃣ STORAGE
-        await clearUserSessionFromStorage();
       }
+     
     } catch (error) {
-      console.log("error : ", error);
       Alert.alert(
         "Logout Failed",
         "An error occurred while logging out. Please try again."

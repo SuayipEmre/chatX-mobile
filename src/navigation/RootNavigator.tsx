@@ -6,20 +6,20 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { AuthNavigatorStackParamList, MainNavigatorStackParamList, ProfileNavigatorStackParamList } from './types'
 import AuthenticationStack from './AuthenticationStack'
 import { useUserSession } from '../store/feature/user/hooks'
-import { getAccessToken, getUserSessionFromStorage } from '../utils/storage'
 import { setUserSession } from '../store/feature/user/actions'
 import MainNavigator from './MainStack'
 import AntDesign from '@expo/vector-icons/AntDesign';
 import ProfileNavigator from './ProfileStack'
 import Feather from '@expo/vector-icons/Feather';
 import { SocketProvider } from '../providers/SocketProvider'
+import { getTokens, getUserSession } from '../utils/cleanStorage'
 type NativeStackNavigatorParamList = {
-    AuthenticationNavigator: NavigatorScreenParams<AuthNavigatorStackParamList>;
+  AuthenticationNavigator: NavigatorScreenParams<AuthNavigatorStackParamList>;
 }
 
 type BottomNavigatorRootStackParamList = {
-    MainNavigator: NavigatorScreenParams<MainNavigatorStackParamList>;
-    ProfileNavigator: NavigatorScreenParams<ProfileNavigatorStackParamList>;
+  MainNavigator: NavigatorScreenParams<MainNavigatorStackParamList>;
+  ProfileNavigator: NavigatorScreenParams<ProfileNavigatorStackParamList>;
 }
 
 
@@ -29,68 +29,87 @@ const Stack = createNativeStackNavigator<NativeStackNavigatorParamList>()
 
 
 const RootNavigator = () => {
-    const user = useUserSession();
-  
-    useEffect(() => {
-      const getUser = async () => {
-        const storedUser = await getUserSessionFromStorage();
-        setUserSession(storedUser ?? null);
-      };
-  
-      getUser();
-    }, []);
-  
-    if (!user) {
-      return (
-        <NavigationContainer>
-          <Stack.Navigator>
-            <Stack.Screen
-              name="AuthenticationNavigator"
-              component={AuthenticationStack}
-              options={{ headerShown: false }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-      );
+  const user = useUserSession();
+
+  console.log('--------------------------------');
+  console.log('RootNavigator user session : ', user);
+  console.log('--------------------------------');
+
+
+  useEffect(() => {
+    const getTokensFromStorage = async () => {
+      try {
+        const tokens = await getTokens()
+        console.log('RootNavigator tokens : ', tokens);
+      } catch (error) {
+        console.log('Error getting tokens in RootNavigator : ', error);
+
+      }
+
     }
-  
+    getTokensFromStorage
+  }, [])
+
+  useEffect(() => {
+    const getUser = async () => {
+      const storedUser = await getUserSession();
+      setUserSession(storedUser ?? null);
+    };
+
+    getUser();
+  }, []);
+
+  if (!user) {
     return (
-      <SocketProvider>
-        <NavigationContainer>
-          <Tab.Navigator
-            screenOptions={{
-              tabBarStyle: { backgroundColor: "black" },
-              tabBarInactiveTintColor: "#ccc",
-              tabBarActiveTintColor: "#fff",
-            }}
-          >
-            <Tab.Screen
-              name="MainNavigator"
-              component={MainNavigator}
-              options={{
-                headerShown: false,
-                tabBarIcon: ({ color }) => (
-                  <AntDesign name="wechat-work" size={24} color={color} />
-                ),
-                tabBarLabel: "Chats",
-              }}
-            />
-  
-            <Tab.Screen
-              name="ProfileNavigator"
-              component={ProfileNavigator}
-              options={{
-                headerShown: false,
-                tabBarIcon: ({ color }) => (
-                  <Feather name="user" size={24} color={color} />
-                ),
-                tabBarLabel: "Profile",
-              }}
-            />
-          </Tab.Navigator>
-        </NavigationContainer>
-      </SocketProvider>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="AuthenticationNavigator"
+            component={AuthenticationStack}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
     );
-  };
-  
+  }
+
+  return (
+    <SocketProvider>
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={{
+            tabBarStyle: { backgroundColor: "black" },
+            tabBarInactiveTintColor: "#ccc",
+            tabBarActiveTintColor: "#fff",
+          }}
+        >
+          <Tab.Screen
+            name="MainNavigator"
+            component={MainNavigator}
+            options={{
+              headerShown: false,
+              tabBarIcon: ({ color }) => (
+                <AntDesign name="wechat-work" size={24} color={color} />
+              ),
+              tabBarLabel: "Chats",
+            }}
+          />
+
+          <Tab.Screen
+            name="ProfileNavigator"
+            component={ProfileNavigator}
+            options={{
+              headerShown: false,
+              tabBarIcon: ({ color }) => (
+                <Feather name="user" size={24} color={color} />
+              ),
+              tabBarLabel: "Profile",
+            }}
+          />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </SocketProvider>
+  );
+};
+
 export default RootNavigator

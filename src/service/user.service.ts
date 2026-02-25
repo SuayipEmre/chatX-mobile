@@ -18,8 +18,8 @@ const UserService = createApi({
       providesTags: ['users']
     }),
 
-    fetchSearchUsers : builder.query({
-      query: ({query, page = 1, limit =10} : {query : string, page?: number, limit?: number}) => {
+    fetchSearchUsers: builder.query({
+      query: ({ query, page = 1, limit = 10 }: { query: string, page?: number, limit?: number }) => {
         return {
           url: `/users/search?query=${query}&page=${page}&limit=${limit}`,
           method: 'GET',
@@ -38,8 +38,28 @@ const UserService = createApi({
       invalidatesTags: ['users']
     }),
 
-    uploadAvatar:builder.mutation({
-      query: (base64 : string) => {
+    changePassword: builder.mutation({
+      query: (body) => {
+        return {
+          url: '/users/change-password',
+          method: 'PUT',
+          body,
+        }
+      }
+    }),
+
+    fetchAllUsers: builder.query({
+      query: () => {
+        return {
+          url: '/users/',
+          method: 'GET',
+        }
+      },
+      providesTags: ['users']
+    }),
+
+    uploadAvatar: builder.mutation({
+      query: (base64: string) => {
         return {
           url: '/users/me/avatar',
           method: 'POST',
@@ -54,6 +74,8 @@ export const {
   useFetchUserProfileQuery,
   useFetchSearchUsersQuery,
   useUpdateProfileMutation,
+  useChangePasswordMutation,
+  useFetchAllUsersQuery,
   useUploadAvatarMutation
 } = UserService
 export default UserService

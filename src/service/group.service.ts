@@ -8,7 +8,7 @@ const GroupService = createApi({
     baseQuery: chatxBaseQuery,
     tagTypes: ['Group'],
     endpoints: (builder) => ({
-    
+
         getGroupDetails: builder.query({
             query: (groupId: string) => {
                 return {
@@ -16,7 +16,7 @@ const GroupService = createApi({
                     method: 'GET',
                 }
             },
-            providesTags : ['Group']
+            providesTags: ['Group']
         }),
 
         removeFromGroup: builder.mutation({
@@ -30,11 +30,11 @@ const GroupService = createApi({
                     }
                 }
             },
-            invalidatesTags : ['Group']
+            invalidatesTags: ['Group']
         }),
 
-        changeGroupAdmin : builder.mutation({
-            query : ({groupId, newAdminId}:{groupId:string, newAdminId:string})=>{
+        changeGroupAdmin: builder.mutation({
+            query: ({ groupId, newAdminId }: { groupId: string, newAdminId: string }) => {
                 return {
                     url: `/groups/change-admin`,
                     method: 'PATCH',
@@ -44,8 +44,36 @@ const GroupService = createApi({
                     }
                 }
             },
-            invalidatesTags : ['Group']
+            invalidatesTags: ['Group']
 
+        }),
+
+        renameGroup: builder.mutation({
+            query: ({ groupId, newName }: { groupId: string, newName: string }) => {
+                return {
+                    url: `/groups/rename`,
+                    method: 'PATCH',
+                    body: {
+                        groupId,
+                        newName
+                    }
+                }
+            },
+            invalidatesTags: ['Group']
+        }),
+
+        addUserToGroup: builder.mutation({
+            query: ({ groupId, userId }: { groupId: string, userId: string }) => {
+                return {
+                    url: `/groups/add-user`,
+                    method: 'POST',
+                    body: {
+                        groupId,
+                        userId
+                    }
+                }
+            },
+            invalidatesTags: ['Group']
         })
 
     })
@@ -53,7 +81,9 @@ const GroupService = createApi({
 export const {
     useGetGroupDetailsQuery,
     useRemoveFromGroupMutation,
-    useChangeGroupAdminMutation
+    useChangeGroupAdminMutation,
+    useRenameGroupMutation,
+    useAddUserToGroupMutation
 } = GroupService
 export default GroupService
 

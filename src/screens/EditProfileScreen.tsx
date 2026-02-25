@@ -31,11 +31,11 @@ const EditProfileScreen = () => {
   const { data: profileData, isError, isLoading } = useFetchUserProfileQuery({})
 
   console.log('profile', profileData);
-  
+
   useEffect(() => {
 
-    if(isLoading) return;
-    if(isError) {
+    if (isLoading) return;
+    if (isError) {
       Alert.alert("Error", "Failed to load profile data");
       return;
     }
@@ -200,6 +200,16 @@ const EditProfileScreen = () => {
             Save Changes
           </Text>
         )}
+      </TouchableOpacity>
+
+      {/* ✅ CHANGE PASSWORD NAV BUTTON */}
+      <TouchableOpacity
+        onPress={() => navigation.navigate("ChangePasswordScreen")}
+        className="mt-6 py-4 rounded-2xl items-center border border-neutral-700 bg-neutral-900"
+      >
+        <Text className="text-neutral-300 font-semibold text-lg">
+          Change Password
+        </Text>
       </TouchableOpacity>
     </View>
   );
